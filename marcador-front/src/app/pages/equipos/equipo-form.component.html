@@ -1,0 +1,31 @@
+<div class="form-wrap">
+  <h3>{{ modo === 'crear' ? 'Nuevo equipo' : 'Editar equipo' }}</h3>
+
+  <div class="field">
+    <label>Nombre</label>
+    <input type="text" [(ngModel)]="nombre" placeholder="Nombre del equipo" />
+  </div>
+
+  <div class="field">
+    <label>Ciudad</label>
+    <input type="text" [(ngModel)]="ciudad" placeholder="Ciudad" />
+  </div>
+
+  <div class="field">
+    <label>Logo (PNG/JPG/JPEG/WEBP, máx 2MB)</label>
+    <input type="file" accept=".png,.jpg,.jpeg,.webp" (change)="onFileChange($event)" />
+  </div>
+
+  <div class="preview" *ngIf="logoPreview">
+    <img [src]="logoPreview" alt="preview" />
+  </div>
+
+  <div class="err" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+  <div class="actions">
+    <button class="btn" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
+    <button class="btn primary" (click)="submit()" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando...' : (modo === 'crear' ? 'Crear' : 'Guardar cambios') }}
+    </button>
+  </div>
+</div>

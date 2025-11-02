@@ -1,0 +1,82 @@
+<section class="wrap">
+  <header class="hdr">
+    <button class="btn" [routerLink]="['/dashboard']">← Regresar</button>
+    <h2>Gestión de Equipos</h2>
+    <div class="actions">
+      <button class="btn primary" (click)="crear()">+ Nuevo equipo</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="search" (input)="onBuscarChange()" />
+    <input type="text" placeholder="Filtrar por ciudad..." [(ngModel)]="ciudad" (input)="onBuscarChange()" />
+    <button class="btn" (click)="limpiarFiltros()">Limpiar</button>
+  </div>
+
+  <div *ngIf="cargando()" class="info">Cargando...</div>
+  <div *ngIf="errorMsg()" class="err">{{ errorMsg() }}</div>
+
+    <table class="tbl" *ngIf="!cargando()">
+    <thead>
+      <tr>
+        <th>Logo</th>
+        <th (click)="toggleSort('nombre')" style="cursor:pointer">Nombre</th>
+        <th (click)="toggleSort('ciudad')" style="cursor:pointer">Ciudad</th>
+        <th (click)="toggleSort('puntos')" style="cursor:pointer">Puntos</th>
+        <th (click)="toggleSort('faltas')" style="cursor:pointer">Faltas</th>
+        <th style="width: 180px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let e of equipos(); trackBy: trackById">
+        <td class="logo">
+          <img *ngIf="e.logoUrl; else noLogo" [src]="e.logoUrl" alt="logo" />
+          <ng-template #noLogo><span class="no-logo">—</span></ng-template>
+        </td>
+        <td>{{ e.nombre }}</td>
+        <td>{{ e.ciudad }}</td>
+        <td>{{ e.puntos }}</td>
+        <td>{{ e.faltas }}</td>
+        <td>
+        <div class="row-actions">
+        <button class="btn" (click)="editar(e)">Editar</button>
+        <button class="btn danger" (click)="eliminar(e)">Eliminar</button>
+        </div>  
+        </td>
+
+      </tr>
+      <tr *ngIf="!equipos().length">
+        <td colspan="6" class="empty">No hay equipos que coincidan con los filtros.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Paginación (FUERA de la tabla) -->
+  <div class="pager" *ngIf="totalItems > 0">
+  <div>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalItems }}</div>
+    <div class="btns">
+      <button class="btn" (click)="goPage(page-1)" [disabled]="page<=1">Anterior</button>
+      <span>Página {{ page }} / {{ totalPages }}</span>
+      <button class="btn" (click)="goPage(page+1)" [disabled]="page>=totalPages">Siguiente</button>
+
+      <!-- selector de tamaño de página -->
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
+        <option [ngValue]="5">5</option>
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+      </select>
+    </div>
+  </div>
+
+
+<!-- Modal simple -->
+<div class="modal-backdrop" *ngIf="modalVisible()">
+  <div class="modal">
+    <app-equipo-form
+      [modo]="modo"
+      [inicial]="seleccionado"
+      (saved)="onFormSaved($event)"
+      (cancelled)="onFormCancelled()"
+    ></app-equipo-form>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+.wrap { max-width: 1080px; margin: 0 auto; padding: 16px; }
+.hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.filters { display:flex; gap:8px; margin-bottom:12px; }
+.filters input, .filters select { flex: 1 1 220px; padding:8px 10px; border:1px solid #ddd; border-radius:6px; }
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th, .tbl td { padding:10px; border-bottom:1px solid #eee; text-align:left; vertical-align:middle; }
+.tbl thead th { font-weight:600; background:#fafafa; }
+.row-actions { display:flex; gap:8px; align-items:center; }
+.btn { padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; }
+.btn.primary { background:#2e7d32; color:#fff; border-color:#2e7d32; }
+.btn.danger { background:#c62828; color:#fff; border-color:#c62828; }
+.info { color:#2e7d32; margin:8px 0; }
+.err { color:#c62828; margin:8px 0; }
+.pager { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+.pager .btns { display:flex; gap:8px; align-items:center; }
+/* modal igual que equipos */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35);
+  display: grid; place-items: center; z-index: 1000;
+}
+.modal {
+  width: min(520px, 92vw);
+  background: #fff; border-radius: 12px; padding: 16px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.2);
+}

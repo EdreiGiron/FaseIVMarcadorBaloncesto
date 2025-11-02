@@ -1,0 +1,50 @@
+<!-- Loader -->
+<div *ngIf="!d()" class="loading">Cargando marcador…</div>
+
+<!-- Marcador -->
+<ng-container *ngIf="d() as m">
+  <div class="scoreboard">
+    <!-- Cabecera: logos + equipos -->
+    <div class="teamBox left">
+      <img class="logo"
+           [src]="logoLocalUrl || defaultLogoLocal"
+           (error)="useFallback('local')"
+           alt="Logo local">
+      <div class="teamName">{{ m.equipoLocal.nombre }}</div>
+      <div class="faltas">Faltas: <b>{{ m.equipoLocal.faltas }}</b></div>
+    </div>
+
+    <div class="centerTop">
+      <button class="exit-btn" (click)="goBack()" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">← Salir</button>
+      <div class="title">{{ titulo() }}</div>
+      <div class="clock" [class.critico]="t() <= 10 && d()?.relojCorriendo">{{ mmss(t()) }}</div>
+      <div class="period" *ngIf="!m.enProrroga; else prorrogaTpl">
+        PERIODO <span>{{ m.cuartoActual }}</span>
+      </div>
+      <ng-template #prorrogaTpl>
+        <div class="period">PRÓRROGA <span>{{ m.numeroProrroga }}</span></div>
+      </ng-template>
+    </div>
+
+    <div class="teamBox right">
+      <img class="logo"
+           [src]="logoVisitaUrl || defaultLogoVisita"
+           (error)="useFallback('visita')"
+           alt="Logo visitante">
+      <div class="teamName">{{ m.equipoVisitante.nombre }}</div>
+      <div class="faltas">Faltas: <b>{{ m.equipoVisitante.faltas }}</b></div>
+    </div>
+
+    <!-- Marcadores grandes -->
+    <div class="scoreBox leftScore">
+      <div class="scoreDigits">{{ m.equipoLocal.puntos }}</div>
+    </div>
+
+    <div class="scoreBox rightScore">
+      <div class="scoreDigits">{{ m.equipoVisitante.puntos }}</div>
+    </div>
+
+    <!-- Buzzer oculto -->
+    <audio id="buzzer" src="assets/buzzer.mp3" preload="auto"></audio>
+  </div>
+</ng-container>

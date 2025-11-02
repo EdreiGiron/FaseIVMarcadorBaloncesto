@@ -1,0 +1,93 @@
+:root{
+  --gap: 20px;
+  --radius: 16px;
+  --border: #eaeaea;
+  --muted: #6b7280;
+  --card: #fff;
+  --shadow: 0 10px 20px rgba(0,0,0,.04);
+}
+
+.wrap{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.hdr h1{
+  margin: 0;
+  font-size: 1.75rem;
+  color: #111827;
+}
+.hdr .sub{
+  margin: 6px 0 20px;
+  color: var(--muted);
+}
+
+.modules{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gap);
+}
+
+/* Tarjeta */
+.mod{
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 120px;                   
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.mod:hover{
+  transform: translateY(-2px);
+  border-color: #dddddd;
+  box-shadow: 0 12px 24px rgba(0,0,0,.06);
+}
+
+.icon{
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f4f3ff;
+  font-size: 26px;
+}
+
+.info h3{
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+  color: #1f2937;
+}
+.info p{
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.35;
+  font-size: .95rem;
+}
+
+
+.chip{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .75rem;
+  color: #3730a3;
+  background: #eef2ff;
+  border: 1px solid #dbeafe;
+}
+
+@media (max-width: 640px){
+  .wrap{ padding: 24px 14px; }
+  .icon{ width: 42px; height: 42px; font-size: 22px; }
+}

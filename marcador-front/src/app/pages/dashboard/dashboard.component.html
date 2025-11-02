@@ -1,0 +1,81 @@
+<div class="wrap">
+  <header class="hdr">
+    <h1>Panel de Administración</h1>
+    <p class="sub">Elige un módulo para gestionar.</p>
+  </header>
+
+  <section class="modules">
+    <a class="mod" routerLink="/admin/equipos">
+      <div class="icon">🏀</div>
+      <div class="info">
+        <h3>Equipos</h3>
+        <p>Crear, editar, eliminar y listar equipos.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/jugadores">
+      <div class="icon">🧱</div>
+      <div class="info">
+        <h3>Jugadores</h3>
+        <p>Gestión de jugadores por equipo.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/control">
+      <div class="icon">🎛️</div>
+      <div class="info">
+        <h3>Marcador (Operador)</h3>
+        <p>Ir al tablero de control del partido.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/torneos/nuevo">
+      <div class="icon">🧩</div>
+      <div class="info">
+        <h3>Nuevo Torneo</h3>
+        <p>Crear playoffs (best-of) y generar llaves.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/partidos/historial">
+      <div class="icon">📅</div>
+      <div class="info">
+        <h3>Partidos</h3>
+        <p>Hoy, próximos y finalizados. Cierra marcadores.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/publico">
+      <div class="icon">📺</div>
+      <div class="info">
+        <h3>Tablero Público</h3>
+        <p>Visualización para audiencia.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/usuarios">
+      <div class="icon">👥</div>
+      <div class="info">
+        <h3>Gestión de usuarios</h3>
+        <p>Administración de cuentas.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/roles">
+      <div class="icon">🔑</div>
+      <div class="info">
+        <h3>Gestión de roles</h3>
+        <p>Permisos y accesos.</p>
+      </div>
+    </a>
+
+    <a class="mod" routerLink="/admin/reportes">
+      <div class="icon">📑</div>
+      <div class="info">
+        <h3>Reportes</h3>
+        <p>Descargar PDFs (equipos, jugadores, historial, roster).</p>
+      </div>
+      <div class="chip">Nuevo</div>
+    </a>
+  </section>
+</div>

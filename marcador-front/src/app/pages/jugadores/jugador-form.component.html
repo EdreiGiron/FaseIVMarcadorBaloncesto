@@ -1,0 +1,30 @@
+<div class="form-wrap">
+  <h3>{{ modo === 'crear' ? 'Nuevo jugador' : 'Editar jugador' }}</h3>
+
+  <div class="field">
+    <label>Nombre</label>
+    <input type="text" [(ngModel)]="nombre" placeholder="Nombre del jugador" />
+  </div>
+
+  <div class="field">
+    <label>Equipo</label>
+    <select [(ngModel)]="equipoId">
+      <option [ngValue]="null">-- Seleccione equipo --</option>
+      <option *ngFor="let eq of equipos()" [ngValue]="eq.id">{{ eq.nombre }}</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Posición</label>
+    <input type="text" [(ngModel)]="posicion" placeholder="Ej. Pivot, Alero, Escolta..." />
+  </div>
+
+  <div class="err" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+  <div class="actions">
+    <button class="btn" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
+    <button class="btn primary" (click)="submit()" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando...' : (modo === 'crear' ? 'Crear' : 'Guardar cambios') }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<section class="wrap">
+    <header class="hdr">
+        <button class="btn" [routerLink]="['/dashboard']">← Regresar</button>
+        <h2>Gestión de Roles</h2>
+        <div class="actions">
+            <button class="btn primary">+ Nuevo rol</button>
+        </div>
+    </header>
+
+    <div *ngIf="cargando()">Cargando...</div>
+    <div *ngIf="error()">{{ error() }}</div>
+
+    <table class="tbl" *ngIf="!cargando()">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th style="width: 180px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let r of roles()">
+                <td>{{ r.name }}</td>
+                <td>
+                    <button class="btn danger" (click)="eliminar(r)">Eliminar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>

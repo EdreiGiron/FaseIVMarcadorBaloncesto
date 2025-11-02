@@ -1,0 +1,7 @@
+mat-card { padding: 16px; }
+.sub { margin-top: -8px; opacity: .8; }
+.row { display: flex; gap: 12px; margin: 8px 0 16px; }
+.lists { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.list { border: 1px solid rgba(0,0,0,.08); border-radius: 8px; padding: 8px; }
+.acciones { display: flex; gap: 12px; margin-top: 12px; }
+.msg { margin-top: 8px; }

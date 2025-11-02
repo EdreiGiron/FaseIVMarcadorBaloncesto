@@ -1,0 +1,46 @@
+<mat-card *ngIf="partido() as p">
+  <h2>Asignar Roster</h2>
+  <p class="sub">
+    Partido #{{ p.gameNumber }} — {{ nombreEquipo(p.equipoLocalId) }} vs {{ nombreEquipo(p.equipoVisitanteId) }}
+  </p>
+
+  <div class="row">
+    <mat-form-field appearance="outline">
+      <mat-label>Equipo</mat-label>
+      <mat-select [ngModel]="equipoId()" (ngModelChange)="equipoId.set($event)">
+        <mat-option [value]="p.equipoLocalId">Local — {{ nombreEquipo(p.equipoLocalId) }}</mat-option>
+        <mat-option [value]="p.equipoVisitanteId">Visitante — {{ nombreEquipo(p.equipoVisitanteId) }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="lists">
+    <div class="list">
+      <h3>Jugadores (máx. 12)</h3>
+      <mat-selection-list>
+        <mat-list-option *ngFor="let j of jugadores()"
+                         [selected]="seleccion().has(j.id)"
+                         (selectionChange)="toggle(j.id)">
+          {{ j.nombre }}
+          <button mat-button type="button"
+                  [color]="titulares().has(j.id) ? 'primary' : undefined"
+                  (click)="toggleTitular(j.id)">
+            {{ titulares().has(j.id) ? 'Titular' : 'Suplente' }}
+          </button>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+  </div>
+
+  <div class="acciones">
+    <button mat-raised-button color="primary" (click)="guardar()" [disabled]="guardando()">Guardar</button>
+    <button mat-button (click)="volver()">Volver</button>
+  </div>
+
+  <p class="msg" *ngIf="msg()">{{ msg() }}</p>
+</mat-card>
+
+<mat-card *ngIf="!partido()">
+  <p>No se recibió información del partido. Vuelve al historial y entra desde el botón “Roster”.</p>
+  <button mat-button (click)="volver()">Volver</button>
+</mat-card>

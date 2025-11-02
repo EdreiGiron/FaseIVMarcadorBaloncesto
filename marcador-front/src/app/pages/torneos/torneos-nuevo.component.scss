@@ -1,0 +1,45 @@
+.wrap { padding: 16px; }
+.toolbar {
+  display: flex; gap: 12px; align-items: center; margin-bottom: 8px;
+}
+.spacer { flex: 1; }
+
+.hdr { margin: 4px 0 12px; }
+.sub { margin: -4px 0 0; opacity: .8; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.seeds-hdr {
+  display: flex; align-items: center; gap: 12px;
+  margin: 6px 0 6px;
+}
+.seeds-hdr .count { font-size: .9rem; opacity: .8; }
+
+.chips {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-bottom: 12px;
+}
+.chip {
+  border-radius: 999px;
+  padding-inline: 10px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.chip .slot { font-weight: 600; opacity: .75; }
+.chip .name { white-space: nowrap; }
+
+.acciones {
+  display: flex; gap: 12px; align-items: center; margin-top: 2px;
+}
+
+.msg { margin-top: 8px; }
+@media (max-width: 920px) {
+  .grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+}

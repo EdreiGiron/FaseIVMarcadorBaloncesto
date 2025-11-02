@@ -1,0 +1,19 @@
+@use '@angular/material' as mat;
+
+/* Tema mínimo M3: usa paletas y tipografía por defecto */
+$light-theme: mat.define-theme((
+  color: (theme-type: light)
+));
+
+/* (Opcional) tema oscuro mínimo si lo necesitas */
+$dark-theme: mat.define-theme((
+  color: (theme-type: dark)
+));
+
+@include mat.core();
+@include mat.all-component-themes($light-theme);
+
+/* Habilitar oscuro al agregar .dark-theme en el root (opcional) */
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+}

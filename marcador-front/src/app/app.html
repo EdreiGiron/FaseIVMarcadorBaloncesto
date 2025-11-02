@@ -1,0 +1,9 @@
+<mat-toolbar color="primary" style="position:sticky; top:0; z-index:1000;">
+  <span style="font-weight:600;">Marcador Basketball</span>
+  <span style="flex:1 1 auto;"></span>
+  <!-- Mostrar solo si está autenticado -->
+  <button *ngIf="isLoggedIn$ | async" mat-button color="accent" (click)="onLogout()">
+    Cerrar Sesión
+  </button>
+</mat-toolbar>
+<router-outlet></router-outlet>

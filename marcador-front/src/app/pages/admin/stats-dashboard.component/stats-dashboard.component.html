@@ -1,0 +1,92 @@
+<div class="page">
+  <div class="toolbar">
+    <button class="btn back" (click)="goBack()">← Regresar</button>
+
+    <h1 class="title">Líderes</h1>
+
+    <div class="spacer"></div>
+
+    <button class="btn" (click)="openLeadersPdf()">Exportar PDF</button>
+  </div>
+
+  <div class="filters">
+    <div class="filter">
+      <label>Métrica</label>
+      <div class="metric-tabs">
+        <button
+          *ngFor="let m of metrics; trackBy: trackById"
+          class="tab"
+          [class.active]="m.key === selectedMetric.key"
+          (click)="onMetricChange(m)"
+        >
+          {{ m.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filter">
+      <label>Equipo</label>
+      <select [(ngModel)]="selectedTeamId" (ngModelChange)="onTeamChange($event)">
+        <option [ngValue]="null">Todos</option>
+        <option *ngFor="let t of teams; trackBy: trackById" [ngValue]="t.id">
+          {{ t.nombre }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading / error -->
+  <div *ngIf="isLoading" class="loading">Cargando…</div>
+  <div *ngIf="!isLoading && errorMsg" class="error">{{ errorMsg }}</div>
+
+  <section *ngIf="!isLoading && !errorMsg">
+    <!-- TOP 3 estilo podio -->
+    <div class="top3" *ngIf="leadersTop3.length">
+      <div class="podium" *ngFor="let p of leadersTop3; let i = index; trackBy: trackById">
+        <div class="avatar">
+          <img *ngIf="p.fotoUrl" [src]="p.fotoUrl" alt="foto" />
+          <div *ngIf="!p.fotoUrl" class="placeholder">{{ p.nombre[0] || '?' }}</div>
+        </div>
+        <div class="value">
+          {{ formatValue(p[selectedMetric.field]) }}
+        </div>
+        <div class="name">{{ p.nombre }}</div>
+        <div class="sub">{{ p.posicion || '—' }} • {{ p.equipoNombre || '' }}</div>
+        <div class="badge">#{{ i + 1 }}</div>
+      </div>
+    </div>
+
+    <!-- Lista (ranking) -->
+    <div class="list" *ngIf="leaderboard.length">
+      <div class="row header">
+        <div class="col rank">#</div>
+        <div class="col player">Jugador</div>
+        <div class="col team hide-sm">Equipo</div>
+        <div class="col pos hide-sm">Pos.</div>
+        <div class="col stat">{{ selectedMetric.label }}</div>
+      </div>
+
+      <div
+        class="row"
+        *ngFor="let p of leaderboard; let idx = index; trackBy: trackById"
+      >
+        <div class="col rank">{{ idx + 4 }}</div>
+        <div class="col player">
+          <div class="sm-avatar">
+            <img *ngIf="p.fotoUrl" [src]="p.fotoUrl" alt="foto" />
+            <div *ngIf="!p.fotoUrl" class="placeholder">{{ p.nombre[0] || '?' }}</div>
+          </div>
+          <div class="info">
+            <div class="name">{{ p.nombre }}</div>
+            <div class="sub hide-lg">{{ p.equipoNombre || '' }} • {{ p.posicion || '—' }}</div>
+          </div>
+        </div>
+        <div class="col team hide-sm">{{ p.equipoNombre || '—' }}</div>
+        <div class="col pos hide-sm">{{ p.posicion || '—' }}</div>
+        <div class="col stat">
+          {{ formatValue(p[selectedMetric.field]) }}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

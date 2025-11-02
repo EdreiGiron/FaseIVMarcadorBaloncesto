@@ -1,0 +1,53 @@
+# ----------------------------
+# .NET
+# ----------------------------
+**/bin/
+**/obj/
+*.user
+*.swp
+
+# ----------------------------
+# Node / Angular
+# ----------------------------
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Logs de npm/yarn
+npm-debug.log*
+yarn-error.log*
+
+# ----------------------------
+# IDE / OS
+# ----------------------------
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# ----------------------------
+# Misc / tests
+# ----------------------------
+coverage/
+libpeerconnection.log
+testem.log
+.sass-cache/
+connect.lock
+typings/
+
+# ----------------------------
+# Config local / secretos
+# ----------------------------
+.env
+*.env
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+
+# ----------------------------
+# EF Migrations (SÍ se versionan)
+# (No ignores aquí, deja Data/Migrations en el repo)
+# ----------------------------

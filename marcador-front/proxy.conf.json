@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "http://localhost:5130",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/pdf": {
+    "target": "http://127.0.0.1:5055",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

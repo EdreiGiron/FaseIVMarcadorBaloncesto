@@ -1,0 +1,88 @@
+<mat-card class="ctl-card">
+  <div class="ctl-header-bar">
+    <button mat-icon-button (click)="goBack()" class="exit-btn">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="ctl-title">Tablero de control</h1>
+  </div>
+
+  <div *ngIf="cargando()" class="ctl-msg">Cargando…</div>
+  <div *ngIf="error()" class="ctl-error">{{ error() }}</div>
+
+  <ng-container *ngIf="datos() as d">
+
+    <div class="ctl-header">
+      <div class="team-name left"><b>{{ d.equipoLocal.nombre }}</b></div>
+      <div class="clock">{{ mmss(tiempoMostrado()) }}</div>
+      <div class="team-name right"><b>{{ d.equipoVisitante.nombre }}</b></div>
+      <div class="subline">
+        <ng-container *ngIf="!d.enProrroga; else prorrogaTpl">
+          Cuarto: <b>{{ d.cuartoActual }}</b> / 4
+        </ng-container>
+        <ng-template #prorrogaTpl><b>Prórroga {{ d.numeroProrroga }}</b></ng-template>
+      </div>
+    </div>
+
+    <div class="ctl-actions">
+      <button mat-stroked-button (click)="abrirRenombrar()">Renombrar equipos</button>
+      <a mat-stroked-button href="/publico" target="_blank" rel="noopener">Vista pública</a>
+
+      <button mat-stroked-button (click)="iniciar()"  [disabled]="corriendo() || !datos() || partidoTerminado()">  <span class="material-symbols-outlined">play_arrow</span>Iniciar</button>
+      <button mat-stroked-button (click)="pausar()"   [disabled]="!corriendo()">  <span class="material-symbols-outlined">pause</span>Pausar</button>
+      <button mat-stroked-button (click)="reiniciar()"><span class="material-symbols-outlined">restart_alt</span>Reiniciar {{ duracionMin }}:00</button>
+      <button mat-stroked-button (click)="onTerminar()" [disabled]="!corriendo() || partidoTerminado()"> <span class="material-symbols-outlined">cancel</span>Terminar partido</button>
+
+      <div class="duracion">
+        <label>Duración (min)</label>
+        <input type="number" min="1" max="20" [value]="duracionMin" (input)="onDuracionInput($event)">
+        <button mat-stroked-button (click)="aplicarDuracion()" [disabled]="esperando()">Aplicar</button>
+      </div>
+
+      <div class="ajustes-rapidos">
+        <button mat-button (click)="ajustar(10)"  [disabled]="tiempoMostrado() >= 20*60">+10s</button>
+        <button mat-button (click)="ajustar(-10)" [disabled]="tiempoMostrado() < 10">-10s</button>
+      </div>
+    </div>
+
+    <!-- Puntos -->
+    <div class="ctl-points">
+      <div class="points local">
+        <div class="score">{{ d.equipoLocal.puntos }}</div>
+        <div class="btns">
+          <button mat-raised-button (click)="sumar('local',1)" [disabled]="esperando()">+1</button>
+          <button mat-raised-button (click)="sumar('local',2)" [disabled]="esperando()">+2</button>
+          <button mat-raised-button (click)="sumar('local',3)" [disabled]="esperando()">+3</button>
+          <button mat-raised-button color="warn" (click)="restar('local',1)" [disabled]="esperando()">-1</button>
+        </div>
+        <div class="faltas">Faltas: <b>{{ d.equipoLocal.faltas }}</b></div>
+      </div>
+
+      <div class="points visitante">
+        <div class="score">{{ d.equipoVisitante.puntos }}</div>
+        <div class="btns">
+          <button mat-raised-button (click)="sumar('visitante',1)" [disabled]="esperando()">+1</button>
+          <button mat-raised-button (click)="sumar('visitante',2)" [disabled]="esperando()">+2</button>
+          <button mat-raised-button (click)="sumar('visitante',3)" [disabled]="esperando()">+3</button>
+          <button mat-raised-button color="warn" (click)="restar('visitante',1)" [disabled]="esperando()">-1</button>
+        </div>
+        <div class="faltas">Faltas: <b>{{ d.equipoVisitante.faltas }}</b></div>
+      </div>
+    </div>
+
+    <!-- Faltas / Cuarto / Otros -->
+    <div class="ctl-bottom">
+      <button mat-stroked-button (click)="falta('local')"   [disabled]="esperando()">Falta Local</button>
+      <button mat-stroked-button (click)="falta('visitante')"  [disabled]="esperando()">Falta Visita</button>
+
+      <button mat-flat-button color="primary" (click)="siguienteCuarto()" [disabled]="esperando()">Siguiente cuarto</button>
+
+      <label class="auto">
+        <input type="checkbox" [checked]="autoAvanzar" (change)="onAutoChange($event)">
+        Auto‑avanzar al llegar a 0
+      </label>
+
+      <button mat-stroked-button (click)="cargar()" [disabled]="esperando()">Refrescar</button>
+      <button mat-stroked-button color="primary" (click)="nuevoPartido()" [disabled]="esperando()">Nuevo partido</button>
+    </div>
+  </ng-container>
+</mat-card>

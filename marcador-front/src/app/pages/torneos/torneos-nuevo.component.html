@@ -1,0 +1,67 @@
+<mat-card class="wrap">
+  <!-- Header -->
+  <div class="toolbar">
+    <a mat-stroked-button routerLink="/dashboard">← Regresar</a>
+    <div class="spacer"></div>
+    <a mat-stroked-button color="primary" routerLink="/admin/partidos/nuevo">
+      Nuevo partido
+    </a>
+  </div>
+
+  <header class="hdr">
+    <h2>Nuevo Torneo (Eliminación directa)</h2>
+    <p class="sub">Configura el torneo y selecciona los seeds en orden 1..N</p>
+  </header>
+
+  <!-- Formulario -->
+  <div class="grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput [ngModel]="nombre()" (ngModelChange)="nombre.set($event)">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Temporada</mat-label>
+      <input matInput type="number"
+             [ngModel]="temporada()" (ngModelChange)="temporada.set(+($event || 0))">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Best of</mat-label>
+      <mat-select [ngModel]="bestOf()" (ngModelChange)="bestOf.set(+($event || 0))">
+        <mat-option [value]="3">3</mat-option>
+        <mat-option [value]="5">5</mat-option>
+        <mat-option [value]="7">7</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Seeds -->
+  <div class="seeds-hdr">
+    <h3>Seeds (en orden 1..N)</h3>
+    <span class="count" *ngIf="seeds().length">Seleccionados: {{seeds().length}}</span>
+  </div>
+
+  <div class="chips">
+    <button
+      mat-stroked-button
+      class="chip"
+      *ngFor="let e of equipos()"
+      (click)="toggleSeed(e.id)"
+      [color]="seeds().includes(e.id) ? 'primary' : undefined">
+      <span class="slot">#{{ (seeds().indexOf(e.id) + 1) || '–' }}</span>
+      <span class="name">{{ e.nombre }}</span>
+    </button>
+  </div>
+
+  <!-- Acciones -->
+  <div class="acciones">
+    <button mat-raised-button color="primary"
+            (click)="crear()" [disabled]="creando()">Crear torneo</button>
+
+    <button mat-stroked-button
+            (click)="seedDemo()" [disabled]="creando()">Crear demo en juego</button>
+  </div>
+
+  <p class="msg" *ngIf="msg()">{{ msg() }}</p>
+</mat-card>

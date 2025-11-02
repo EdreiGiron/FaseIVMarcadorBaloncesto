@@ -1,0 +1,29 @@
+<mat-card>
+  <h2>Registro de usuarios</h2>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Usuario</mat-label>
+      <input matInput formControlName="username" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input matInput type="password" formControlName="password" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rol</mat-label>
+      <mat-select formControlName="roleId">
+        <mat-option *ngFor="let r of roles" [value]="r.id">{{ r.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+      Registrar
+    </button>
+    <p>¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a></p>
+  </form>
+
+  <p *ngIf="error" class="text-danger">{{ error }}</p>
+  <p *ngIf="success" class="text-success">{{ success }}</p>
+</mat-card>

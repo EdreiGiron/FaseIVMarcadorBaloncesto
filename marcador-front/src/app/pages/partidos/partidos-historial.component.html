@@ -1,0 +1,264 @@
+<mat-card>
+  <div class="toolbar">
+    <a mat-stroked-button routerLink="/dashboard">← Regresar</a>
+  </div>
+
+  <h2>Partidos / Historial</h2>
+
+<!-- Filtros -->
+<div class="filtros">
+  <!-- Torneo por NOMBRE -->
+  <mat-form-field appearance="outline" class="w-64">
+    <mat-label>Torneo</mat-label>
+    <input
+      matInput
+      [matAutocomplete]="autoTorneos"
+      [ngModel]="torneoNombre()"
+      (ngModelChange)="onTorneoChange($event)"
+      (keyup.enter)="confirmarTorneo()"
+      (blur)="confirmarTorneo()"
+      placeholder="Escribe el nombre"
+    />
+    <mat-autocomplete
+      #autoTorneos="matAutocomplete"
+      (optionSelected)="onTorneoSelect($event.option.value.id, $event.option.value.nombre)"
+    >
+      <mat-option *ngFor="let t of torneosFiltrados()" [value]="t">
+        {{ t.nombre }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- Equipo por NOMBRE -->
+  <mat-form-field appearance="outline" class="w-64">
+    <mat-label>Equipo</mat-label>
+    <input
+      matInput
+      [matAutocomplete]="autoEquipos"
+      [ngModel]="equipoNombre()"
+      (ngModelChange)="onEquipoChange($event)"
+      placeholder="Escribe el nombre"
+    />
+    <mat-autocomplete
+      #autoEquipos="matAutocomplete"
+      (optionSelected)="onEquipoSelect($event.option.value.id, $event.option.value.nombre)"
+    >
+      <mat-option *ngFor="let e of equiposFiltrados()" [value]="e">
+        {{ e.nombre }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- Ronda funcional -->
+  <mat-form-field appearance="outline" class="w-64">
+    <mat-label>Ronda</mat-label>
+    <input
+      matInput
+      [ngModel]="ronda()"
+      (ngModelChange)="onRondaChange($event)"
+      (keyup.enter)="aplicarRonda()"
+      (blur)="aplicarRonda()"
+      placeholder="Ej. Semifinal, Final"
+    />
+  </mat-form-field>
+
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="torneoId.set(undefined); torneoNombre.set(''); equipoId.set(undefined); equipoNombre.set(''); ronda.set(undefined)"
+  >
+    Limpiar
+  </button>
+
+  <span class="spacer"></span>
+
+  <button mat-stroked-button color="primary" type="button" (click)="verBracket()">Ver bracket</button>
+</div>
+
+  <mat-tab-group>
+    <!-- ============ HOY ============ -->
+    <mat-tab label="Hoy">
+      <table mat-table [dataSource]="hoy()" class="mat-elevation-z2 full-width">
+        <!-- Fecha -->
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef> Fecha/Hora </th>
+          <td mat-cell *matCellDef="let p">{{ p.fechaHora | date:'short' }}</td>
+        </ng-container>
+
+        <!-- Ronda -->
+        <ng-container matColumnDef="ronda">
+          <th mat-header-cell *matHeaderCellDef> Ronda </th>
+          <td mat-cell *matCellDef="let p">{{ p.ronda }}</td>
+        </ng-container>
+
+        <!-- Juego -->
+        <ng-container matColumnDef="game">
+          <th mat-header-cell *matHeaderCellDef> Juego </th>
+          <td mat-cell *matCellDef="let p">#{{ p.gameNumber }}</td>
+        </ng-container>
+
+        <!-- Tipo -->
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef> Tipo </th>
+          <td mat-cell *matCellDef="let p">{{ getTipoJuego(p) }}</td>
+        </ng-container>
+
+        <!-- Torneo (nombre del torneo o guion si es amistoso) -->
+        <ng-container matColumnDef="torneo">
+          <th mat-header-cell *matHeaderCellDef>Torneo</th>
+          <td mat-cell *matCellDef="let p">{{ nombreTorneo(p) }}</td>
+        </ng-container>
+
+        <!-- Equipos -->
+        <ng-container matColumnDef="equipos">
+          <th mat-header-cell *matHeaderCellDef> Equipos </th>
+          <td mat-cell *matCellDef="let p">
+            L: {{ nombreEquipo(p.equipoLocalId) }} vs V: {{ nombreEquipo(p.equipoVisitanteId) }}
+          </td>
+        </ng-container>
+
+        <!-- Marcador -->
+        <ng-container matColumnDef="marcador">
+          <th mat-header-cell *matHeaderCellDef> Marcador </th>
+          <td mat-cell *matCellDef="let p">
+            <ng-container *ngIf="p.marcadorLocal != null && p.marcadorVisitante != null; else guion1">
+              {{ p.marcadorLocal }} - {{ p.marcadorVisitante }}
+            </ng-container>
+            <ng-template #guion1>—</ng-template>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef> Estado </th>
+          <td mat-cell *matCellDef="let p">{{ p.estado }}</td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let p" class="acciones-cell">
+            <button mat-stroked-button (click)="abrirRoster(p)">Roster</button>
+            <button mat-stroked-button color="accent" (click)="irTablero(p)">Iniciar / Ir a tablero</button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-tab>
+
+    <!-- ============ PRÓXIMOS ============ -->
+    <mat-tab label="Próximos">
+      <table mat-table [dataSource]="proximos()" class="mat-elevation-z2 full-width">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef> Fecha/Hora </th>
+          <td mat-cell *matCellDef="let p">{{ p.fechaHora | date:'short' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ronda">
+          <th mat-header-cell *matHeaderCellDef> Ronda </th>
+          <td mat-cell *matCellDef="let p">{{ p.ronda }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="game">
+          <th mat-header-cell *matHeaderCellDef> Juego </th>
+          <td mat-cell *matCellDef="let p">#{{ p.gameNumber }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef> Tipo </th>
+          <td mat-cell *matCellDef="let p">{{ getTipoJuego(p) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="torneo">
+          <th mat-header-cell *matHeaderCellDef>Torneo</th>
+          <td mat-cell *matCellDef="let p">{{ nombreTorneo(p) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="equipos">
+          <th mat-header-cell *matHeaderCellDef> Equipos </th>
+          <td mat-cell *matCellDef="let p">
+            L: {{ nombreEquipo(p.equipoLocalId) }} vs V: {{ nombreEquipo(p.equipoVisitanteId) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="marcador">
+          <th mat-header-cell *matHeaderCellDef> Marcador </th>
+          <td mat-cell *matCellDef="let p">—</td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef> Estado </th>
+          <td mat-cell *matCellDef="let p">{{ p.estado }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let p" class="acciones-cell">
+            <button mat-stroked-button (click)="abrirRoster(p)">Roster</button>
+            <button mat-stroked-button color="accent" (click)="irTablero(p)">Iniciar / Ir a tablero</button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-tab>
+
+    <!-- ============ FINALIZADOS ============ -->
+    <mat-tab label="Finalizados">
+      <table mat-table [dataSource]="finalizados()" class="mat-elevation-z2 full-width">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef> Fecha/Hora </th>
+          <td mat-cell *matCellDef="let p">{{ p.fechaHora | date:'short' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ronda">
+          <th mat-header-cell *matHeaderCellDef> Ronda </th>
+          <td mat-cell *matCellDef="let p">{{ p.ronda }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="game">
+          <th mat-header-cell *matHeaderCellDef> Juego </th>
+          <td mat-cell *matCellDef="let p">#{{ p.gameNumber }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef> Tipo </th>
+          <td mat-cell *matCellDef="let p">{{ getTipoJuego(p) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="torneo">
+          <th mat-header-cell *matHeaderCellDef>Torneo</th>
+          <td mat-cell *matCellDef="let p">{{ nombreTorneo(p) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="equipos">
+          <th mat-header-cell *matHeaderCellDef> Equipos </th>
+          <td mat-cell *matCellDef="let p">
+            L: {{ nombreEquipo(p.equipoLocalId) }} vs V: {{ nombreEquipo(p.equipoVisitanteId) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="marcador">
+          <th mat-header-cell *matHeaderCellDef> Marcador </th>
+          <td mat-cell *matCellDef="let p">{{ p.marcadorLocal }} - {{ p.marcadorVisitante }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef> Estado </th>
+          <td mat-cell *matCellDef="let p">{{ p.estado }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let p"></td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-tab>
+  </mat-tab-group>
+</mat-card>

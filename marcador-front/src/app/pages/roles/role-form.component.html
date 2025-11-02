@@ -1,0 +1,13 @@
+<div class="form-wrap">
+  <h3>{{ role.id ? 'Editar Rol' : 'Nuevo Rol' }}</h3>
+
+  <div class="field">
+    <label>Nombre</label>
+    <input [(ngModel)]="role.name" placeholder="Nombre del rol" />
+  </div>
+  
+  <div class="actions">
+    <button class="btn primary" (click)="guardar()">💾 Guardar</button>
+    <button class="btn" (click)="cancelled.emit()">Cancelar</button>
+  </div>
+</div>

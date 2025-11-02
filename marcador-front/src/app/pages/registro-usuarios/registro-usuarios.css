@@ -1,0 +1,17 @@
+mat-card {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.text-danger {
+  color: red;
+}
+
+.text-success {
+  color: green;
+}

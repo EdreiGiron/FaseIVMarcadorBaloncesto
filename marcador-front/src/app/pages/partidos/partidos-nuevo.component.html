@@ -1,0 +1,45 @@
+<mat-card class="wrap">
+  <div class="toolbar">
+    <a mat-stroked-button routerLink="/admin/torneos/nuevo">← Regresar</a>
+  </div>
+
+  <header class="hdr">
+    <h2>Nuevo Partido</h2>
+    <p class="sub">Programa un <b>amistoso</b> seleccionando equipos y fecha/hora.</p>
+  </header>
+
+  <div class="grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Fecha/Hora</mat-label>
+      <input matInput type="datetime-local"
+             [ngModel]="fechaLocal()"
+             (ngModelChange)="fechaLocal.set($event)">
+    </mat-form-field>
+  </div>
+
+  <div class="grid two">
+    <mat-form-field appearance="outline">
+      <mat-label>Equipo Local</mat-label>
+      <mat-select [ngModel]="localId()" (ngModelChange)="localId.set($event)">
+        <mat-option *ngFor="let e of equipos()" [value]="e.id">{{ e.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="center">
+      <button mat-stroked-button type="button" (click)="swap()">⇄ Intercambiar</button>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Equipo Visitante</mat-label>
+      <mat-select [ngModel]="visitaId()" (ngModelChange)="visitaId.set($event)">
+        <mat-option *ngFor="let e of equipos()" [value]="e.id">{{ e.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="acciones">
+    <button mat-raised-button color="primary" (click)="crear()" [disabled]="guardando()">Crear partido</button>
+  </div>
+
+  <p class="msg" *ngIf="msg()">{{ msg() }}</p>
+</mat-card>

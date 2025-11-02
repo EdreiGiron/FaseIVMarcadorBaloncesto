@@ -1,0 +1,129 @@
+<div class="page">
+  <button class="btn-back" (click)="goBack()">← Regresar</button>
+
+  <h1>Reportes (PDF)</h1>
+  <p class="subtitle">Descarga de reportes generados en backend.</p>
+
+  <section class="grid">
+    <!-- Equipos -->
+    <article class="card">
+      <header>
+        <span class="emoji">🏀</span>
+        <div>
+          <h2>Equipos registrados</h2>
+          <p class="hint">Nombre, ciudad, puntos y faltas</p>
+        </div>
+      </header>
+      <div class="actions">
+        <button class="btn small" (click)="openEquipos()">Descargar PDF</button>
+      </div>
+    </article>
+
+    <!-- Jugadores por equipo -->
+    <article class="card">
+      <header>
+        <span class="emoji">🧩</span>
+        <div>
+          <h2>Jugadores por equipo</h2>
+          <p class="hint">Nombre, número, posición, edad, estatura, nacionalidad</p>
+        </div>
+      </header>
+
+      <label class="label">Equipo:</label>
+      <select class="select"
+              [(ngModel)]="selectedTeamId"
+              (ngModelChange)="onTeamChange($event)">
+        <option [ngValue]="null" disabled>Seleccione un equipo…</option>
+        <option *ngFor="let t of teams; trackBy: trackById" [ngValue]="t.id">
+          {{ t.nombre }}
+        </option>
+        <a class="btn" routerLink="/admin/estadisticas">Ver líderes</a>
+      </select>
+
+      <div class="actions">
+        <button class="btn" [disabled]="!selectedTeamId" (click)="openJugadoresPorEquipo()">
+          Descargar PDF
+        </button>
+      </div>
+    </article>
+
+    <!-- Historial de partidos -->
+    <article class="card">
+      <header>
+        <span class="emoji">📅</span>
+        <div>
+          <h2>Historial de partidos</h2>
+          <p class="hint">Participantes, fecha/hora, marcador ({{ partidos.length }} partidos)</p>
+        </div>
+      </header>
+
+      <label class="label">Temporada (opcional):</label>
+      <select class="select" [(ngModel)]="temporadaId">
+        <option [ngValue]="null">Todas las temporadas</option>
+        <option *ngFor="let s of seasons; trackBy: trackById" [ngValue]="s.id">
+          {{ s.nombre }}
+        </option>
+      </select>
+
+      <div class="actions">
+        <button class="btn" [disabled]="partidos.length === 0" (click)="openHistorial()">Descargar PDF</button>
+      </div>
+    </article>
+
+    <!-- Estadísticas por jugador -->
+    <article class="card">
+      <header>
+        <span class="emoji">📊</span>
+        <div>
+          <h2>Estadísticas por jugador</h2>
+          <p class="hint">Promedios, % y scouting</p>
+        </div>
+      </header>
+
+      <label class="label">Equipo:</label>
+      <select class="select"
+              [(ngModel)]="selectedTeamIdForStats"
+              (ngModelChange)="onTeamChangeForStats($event)">
+        <option [ngValue]="null" disabled>Seleccione un equipo…</option>
+        <option *ngFor="let t of teams; trackBy: trackById" [ngValue]="t.id">
+          {{ t.nombre }}
+        </option>
+      </select>
+
+      <label class="label">Jugador:</label>
+      <select class="select" [(ngModel)]="selectedPlayerId" [disabled]="!players.length">
+        <option [ngValue]="null" disabled>Seleccione un jugador…</option>
+        <option *ngFor="let j of players; trackBy: trackById" [ngValue]="j.id">
+          {{ j.nombre }}
+        </option>
+      </select>
+
+      <div class="actions">
+        <button class="btn" [disabled]="!selectedPlayerId" (click)="openScouting()">Descargar PDF</button>
+      </div>
+    </article>
+
+    <!-- Roster por partido -->
+    <article class="card">
+      <header>
+        <span class="emoji">📝</span>
+        <div>
+          <h2>Roster por partido</h2>
+          <p class="hint">Jugadores asignados por equipo</p>
+        </div>
+      </header>
+
+      <label class="label">Seleccionar partido:</label>
+      <select class="select" [(ngModel)]="partidoId" [disabled]="!partidos.length">
+        <option [ngValue]="null" disabled>Seleccione un partido…</option>
+        <option *ngFor="let p of partidos; trackBy: trackById" [ngValue]="p.id">
+          #{{ p.id }} - {{ p.label }}
+        </option>
+      </select>
+
+      <div class="actions gap">
+        <button class="btn" [disabled]="!partidoId" (click)="openRoster()">Descargar PDF</button>
+      </div>
+    </article>
+  </section>
+</div>
