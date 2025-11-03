@@ -39,3 +39,11 @@ C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorne
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\SharpCompress.dll
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\Snappier.dll
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\ZstdSharp.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\REgistroTorneos.Api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
