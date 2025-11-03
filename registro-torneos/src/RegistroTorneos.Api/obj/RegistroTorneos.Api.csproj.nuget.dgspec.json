@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\RegistroTorneos.Api.csproj": {}
+    "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\RegistroTorneos.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\RegistroTorneos.Api.csproj": {
+    "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\RegistroTorneos.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\RegistroTorneos.Api.csproj",
+        "projectUniqueName": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\RegistroTorneos.Api.csproj",
         "projectName": "RegistroTorneos.Api",
-        "projectPath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\RegistroTorneos.Api.csproj",
+        "projectPath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\RegistroTorneos.Api.csproj",
         "packagesPath": "C:\\Users\\edwar\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\obj\\",
+        "outputPath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

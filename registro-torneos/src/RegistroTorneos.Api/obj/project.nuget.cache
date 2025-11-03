@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "AyiPNTEcTK0=",
+  "dgSpecHash": "I0nwFaq2mHU=",
   "success": true,
-  "projectFilePath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\REgistroTorneos.Api\\RegistroTorneos.Api.csproj",
+  "projectFilePath": "C:\\Users\\edwar\\OneDrive\\Escritorio\\ProyectoDW\\registro-torneos\\src\\RegistroTorneos.Api\\RegistroTorneos.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\edwar\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\edwar\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.10\\microsoft.aspnetcore.authentication.jwtbearer.9.0.10.nupkg.sha512",
