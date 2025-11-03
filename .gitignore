@@ -1,0 +1,7 @@
+secrets/
+*.pem
+*.pfx
+*.p12
+
+**/bin/
+**/obj/

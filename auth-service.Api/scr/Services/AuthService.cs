@@ -1,11 +1,12 @@
 using AuthService.Api.Models;
 using AuthService.Api.Models.DTOs;
 using AuthService.Api.Repositories.Interfaces;
+using AuthService.Api.Security;
 using AuthService.Api.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AuthService.Api.Security;
 
 namespace AuthService.Api.Services;
 
@@ -27,14 +28,13 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(req.Password, user.Password)) return null;
 
         user.Role ??= await _roles.GetByIdAsync(user.RoleId);
-
         var token = GenerateJwt(user);
         var refresh = await IssueRefresh(user.Id);
 
         return new LoginResponseDto
         {
             Username = user.Username,
-            Role = new RoleDto { Name = user.Role?.Name ?? "User" },
+            Role = new RoleDto(user.Role?.Name ?? "User"),
             Token = token,
             RefreshToken = refresh
         };
@@ -49,8 +49,8 @@ public class AuthService : IAuthService
         if (user == null) return null;
 
         user.Role ??= await _roles.GetByIdAsync(user.RoleId);
-
         stored.IsRevoked = true;
+
         var newRefresh = await IssueRefresh(user.Id, stored.Token);
         var newAccess = GenerateJwt(user);
         await _refresh.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class AuthService : IAuthService
         return new LoginResponseDto
         {
             Username = user.Username,
-            Role = new RoleDto { Name = user.Role?.Name ?? "User" },
+            Role = new RoleDto(user.Role?.Name ?? "User"),
             Token = newAccess,
             RefreshToken = newRefresh
         };
@@ -120,12 +120,38 @@ public class AuthService : IAuthService
         };
 
         var creds = new SigningCredentials(_rsa.Key, SecurityAlgorithms.RsaSha256);
-        var token = new JwtSecurityToken(
-            issuer: issuer, audience: audience, claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(minutes),
-            signingCredentials: creds
-        );
+        var token = new JwtSecurityToken(issuer: issuer, audience: audience, claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(minutes), signingCredentials: creds);
         token.Header["kid"] = _rsa.KeyId;
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<LoginResponseDto?> ExternalSignInAsync(string email, string? displayName)
+    {
+        var user = await _users.GetByUsernameWithRoleAsync(email);
+        if (user is null)
+        {
+            var role = await _roles.GetByNameAsync("USER") ?? await _roles.GetByIdAsync(1);
+            if (role is null) return null;
+
+            user = new User
+            {
+                Username = email,
+                Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N")),
+                RoleId = role.Id
+            };
+            await _users.AddAsync(user);
+            user.Role = role;
+        }
+
+        var token = GenerateJwt(user);
+        var refresh = await IssueRefresh(user.Id);
+        return new LoginResponseDto
+        {
+            Username = user.Username,
+            Role = new RoleDto(user.Role?.Name ?? "USER"),
+            Token = token,
+            RefreshToken = refresh
+        };
     }
 }

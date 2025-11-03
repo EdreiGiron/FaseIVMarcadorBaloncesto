@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using AuthService.Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Api.Data;
 
@@ -13,14 +13,12 @@ public class AuthDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.Entity<User>()
-            .HasIndex(u => u.Username)
-            .IsUnique();
+        mb.Entity<User>().HasIndex(u => u.Username).IsUnique();
 
         mb.Entity<User>()
-            .HasOne(u => u.Role)
-            .WithMany(r => r.Users)
-            .HasForeignKey(u => u.RoleId)
-            .OnDelete(DeleteBehavior.Restrict);
+          .HasOne(u => u.Role)
+          .WithMany(r => r.Users)
+          .HasForeignKey(u => u.RoleId)
+          .OnDelete(DeleteBehavior.Restrict);
     }
 }

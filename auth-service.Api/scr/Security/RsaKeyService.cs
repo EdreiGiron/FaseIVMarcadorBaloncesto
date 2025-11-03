@@ -1,38 +1,35 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 
 namespace AuthService.Api.Security;
 
 public sealed class RsaKeyService
 {
-    public RsaSecurityKey Key { get; }
+    public RsaSecurityKey Key { get; }          
+    public RsaSecurityKey PublicKey { get; }        
+    public RSA PublicRsa { get; }                   
     public string KeyId { get; }
     public JsonWebKey Jwk { get; }
 
     public RsaKeyService(IConfiguration cfg)
     {
-        var kid = cfg["Jwt:KeyId"] ?? "auth-rsa-kid";
+        var kid = cfg["Jwt:KeyId"] ?? "auth-rsa-kid-1";
         var privPath = cfg["Jwt:PrivateKeyPemPath"];
-        var pubPath  = cfg["Jwt:PublicKeyPemPath"];
-
+        var pubPath = cfg["Jwt:PublicKeyPemPath"];
         if (string.IsNullOrWhiteSpace(privPath) || string.IsNullOrWhiteSpace(pubPath))
-            throw new InvalidOperationException("Faltan rutas a llaves RSA en appsettings.");
+            throw new InvalidOperationException("Faltan rutas de llaves RSA en appsettings.");
 
         var privatePem = File.ReadAllText(privPath);
-        var publicPem  = File.ReadAllText(pubPath);
+        var publicPem = File.ReadAllText(pubPath);
 
-        var rsa = RSA.Create();
-        rsa.ImportFromPem(privatePem);
+        var rsa = RSA.Create(); rsa.ImportFromPem(privatePem);
+        var rsaPub = RSA.Create(); rsaPub.ImportFromPem(publicPem);
+        var p = rsaPub.ExportParameters(false);
 
-        var rsaPub = RSA.Create();
-        rsaPub.ImportFromPem(publicPem);
-        var rsaParams = rsaPub.ExportParameters(false);
-
-        var key = new RsaSecurityKey(rsa) { KeyId = kid };
-        Key = key;
+        Key = new RsaSecurityKey(rsa) { KeyId = kid };
+        PublicKey = new RsaSecurityKey(rsaPub) { KeyId = kid };
+        PublicRsa = rsaPub;
         KeyId = kid;
 
         string B64Url(byte[] x) => Base64UrlEncoder.Encode(x);
@@ -41,9 +38,9 @@ public sealed class RsaKeyService
             Kty = "RSA",
             Kid = kid,
             Use = "sig",
-            Alg = SecurityAlgorithms.RsaSha256,
-            N = B64Url(rsaParams.Modulus!),
-            E = B64Url(rsaParams.Exponent!)
+            Alg = SecurityAlgorithms.RsaSha256, // "RS256"
+            N = B64Url(p.Modulus!),
+            E = B64Url(p.Exponent!)
         };
     }
 }

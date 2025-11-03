@@ -1,0 +1,49 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "14333:1433"
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups  
+    networks: [ backend ]
+
+  auth-service:
+    build:
+      context: ./auth-service.Api
+      dockerfile: ./scr/Dockerfile
+    container_name: auth-service
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=MarcadorAuthDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False
+      - OAuth__Google__ClientId=1093931371189-qabnd72ubb9314qmp2mrma4rnuck43p1.apps.googleusercontent.com
+      - OAuth__Google__ClientSecret=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
+      - OAuth__GitHub__ClientId=Ov23libhBVKlWMsSIKde
+      - OAuth__GitHub__ClientSecret=05871bce443d3f4668bfda73d3c873f9d4af7cd9
+      - Jwt__Issuer=https://auth-service
+      - Jwt__Audience=marcador-clients
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./secrets/auth_private.pem:/run/secrets/auth_private.pem:ro
+      - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
+    networks: [ backend ]
+
+networks:
+  backend:
+
+volumes:
+  mssql_data:
