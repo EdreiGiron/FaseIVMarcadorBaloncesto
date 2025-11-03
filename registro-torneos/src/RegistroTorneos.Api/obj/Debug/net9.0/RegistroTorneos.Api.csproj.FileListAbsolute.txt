@@ -33,3 +33,9 @@ C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorne
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\obj\Debug\net9.0\RegistroTorneos.Api.pdb
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\obj\Debug\net9.0\RegistroTorneos.Api.genruntimeconfig.cache
 C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\obj\Debug\net9.0\ref\RegistroTorneos.Api.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\DnsClient.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\MongoDB.Bson.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\MongoDB.Driver.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\SharpCompress.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\Snappier.dll
+C:\Users\edwar\OneDrive\Escritorio\ProyectoDW\registro-torneos\src\RegistroTorneos.Api\bin\Debug\net9.0\ZstdSharp.dll
