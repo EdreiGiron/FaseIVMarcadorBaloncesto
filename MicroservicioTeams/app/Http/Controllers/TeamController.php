@@ -1,7 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-
+/**Funciones generales controller Equipos-Teams
+ *   - Gestión de equipos (CRUD).
+ *   - Listado paginado y listado simple.
+ *   - Manejo de logos (archivo), exponiéndolos por /storage/logos
+*/
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
