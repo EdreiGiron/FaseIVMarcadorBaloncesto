@@ -1,7 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-
+/**Funciones generales controller Player-Jugadores
+ *   - Gestión de jugadores (CRUD).
+ *   - Listado paginado y listado simple.
+ *   - Enriquecimiento con el nombre del equipo consumiendo el servicio de equipos.
+*/
 use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
