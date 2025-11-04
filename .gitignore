@@ -1,7 +1,40 @@
-secrets/
-*.pem
-*.pfx
-*.p12
+# --- Root ignore ---
 
+# Node / Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/.cache/
+
+# PHP / Laravel
+**/vendor/
+**/.env
+!**/.env.example
+**/storage/*.key
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# .NET
 **/bin/
 **/obj/
+*.user
+*.suo
+
+# Logs
+**/*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# Misc
+composer.phar

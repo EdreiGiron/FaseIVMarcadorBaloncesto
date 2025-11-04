@@ -3,10 +3,10 @@
     "target": "http://127.0.0.1:8082",
     "secure": false,
     "changeOrigin": true,
+    "logLevel": "debug",
     "pathRewrite": {
       "^/api/jugadores": "/api/players"
-    },
-    "logLevel": "debug"
+    }
   },
 
   "/api/equipos": {
@@ -15,6 +15,7 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
+
   "/storage/logos": {
     "target": "http://127.0.0.1:8081",
     "secure": false,
@@ -27,12 +28,14 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
+
   "/pdf": {
     "target": "http://127.0.0.1:5055",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
+
   "/api": {
     "target": "http://localhost:5130",
     "secure": false,
