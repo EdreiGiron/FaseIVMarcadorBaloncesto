@@ -1,49 +1,107 @@
+version: '3.8'
+
 services:
+  # Base de datos MySQL para players
+  players-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: players
+      MYSQL_USER: players
+      MYSQL_PASSWORD: players123
+    ports:
+      - "3307:3306"
+    volumes:
+      - players_data:/var/lib/mysql
+    networks:
+      - basketball_net
+
+  # SQL Server para otros servicios
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong!Passw0rd
+      SA_PASSWORD: 'D3saweb.2025$'
+      ACCEPT_EULA: 'Y'
     ports:
-      - "14333:1433"
-    healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - "1433:1433"
     volumes:
-      - mssql_data:/var/opt/mssql
-      - ./backups:/var/opt/mssql/backups  
-    networks: [ backend ]
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - basketball_net
 
+  # Microservicio de autenticación
   auth-service:
-    build:
-      context: ./auth-service.Api
-      dockerfile: ./scr/Dockerfile
-    container_name: auth-service
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=MarcadorAuthDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False
-      - OAuth__Google__ClientId=1093931371189-qabnd72ubb9314qmp2mrma4rnuck43p1.apps.googleusercontent.com
-      - OAuth__Google__ClientSecret=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
-      - OAuth__GitHub__ClientId=Ov23libhBVKlWMsSIKde
-      - OAuth__GitHub__ClientSecret=05871bce443d3f4668bfda73d3c873f9d4af7cd9
-      - Jwt__Issuer=https://auth-service
-      - Jwt__Audience=marcador-clients
+    build: ./MicroservicioAuth
     ports:
-      - "8080:8080"
-    volumes:
-      - ./secrets/auth_private.pem:/run/secrets/auth_private.pem:ro
-      - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
-    networks: [ backend ]
+      - "5001:8080"
+    depends_on:
+      - sqlserver
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+    networks:
+      - basketball_net
 
-networks:
-  backend:
+  # Microservicio de jugadores (PHP)
+  players-service:
+    build: ./MicroservicioPlayers
+    ports:
+      - "8082:8082"
+    depends_on:
+      - players-db
+    environment:
+      - DB_HOST=players-db
+      - DB_DATABASE=players
+      - DB_USERNAME=players
+      - DB_PASSWORD=players123
+      - FRONT_ORIGIN=http://localhost:4200
+    networks:
+      - basketball_net
+
+  # Microservicio de equipos
+  teams-service:
+    build: ./MicroservicioTeams
+    ports:
+      - "5003:8080"
+    depends_on:
+      - sqlserver
+      - auth-service
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+      - AuthService__BaseUrl=http://auth-service:8080
+    networks:
+      - basketball_net
+
+  # Microservicio de reportes
+  reports-service:
+    build: ./MicroservicioReportes
+    ports:
+      - "5004:8080"
+    depends_on:
+      - sqlserver
+      - auth-service
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+      - AuthService__BaseUrl=http://auth-service:8080
+    networks:
+      - basketball_net
+
+  # Frontend Angular
+  frontend:
+    build: ./Frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - auth-service
+      - players-service
+      - teams-service
+      - reports-service
+    networks:
+      - basketball_net
 
 volumes:
-  mssql_data:
+  players_data:
+  sqlserver_data:
+
+networks:
+  basketball_net:
+    driver: bridge
