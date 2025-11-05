@@ -14,10 +14,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${access}` } });
   }
 
+  const isRefreshCall = req.url.includes('/auth/refresh');
+
   return next(req).pipe(
     catchError(err => {
-      if (err.status === 401 && auth.getRefreshToken()) {
-        // Intentar refresh
+      if (err.status === 401 && !isRefreshCall && auth.getRefreshToken()) {
         return auth.refreshToken().pipe(
           switchMap(newAccess => {
             if (!newAccess) {

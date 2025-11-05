@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # Base de datos MySQL para players
+  # MySQL para players
   players-db:
     image: mysql:8.0
     environment:
@@ -13,94 +11,156 @@ services:
       - "3307:3306"
     volumes:
       - players_data:/var/lib/mysql
-    networks:
-      - basketball_net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [basketball_net]
+    profiles: ["players"]
 
-  # SQL Server para otros servicios
+  # SQL Server general
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      SA_PASSWORD: 'D3saweb.2025$'
-      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: "D3saweb.2025$"
+      ACCEPT_EULA: "Y"
     ports:
-      - "1433:1433"
+      - "14331:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
-    networks:
-      - basketball_net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [basketball_net]
+    profiles: ["teams","reports"]
+
+  # SQL Server exclusivo del auth-service
+  sqlserver-auth:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "14333:1433"
+    volumes:
+      - mssql_auth_data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [basketball_net]
+    profiles: ["auth"]
 
   # Microservicio de autenticación
   auth-service:
-    build: ./MicroservicioAuth
-    ports:
-      - "5001:8080"
+    build:
+      context: ./auth-service.Api
+      dockerfile: ./scr/Dockerfile
     depends_on:
-      - sqlserver
+      sqlserver-auth:
+        condition: service_healthy
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
-    networks:
-      - basketball_net
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      # Connection String
+      ConnectionStrings__DefaultConnection: Server=sqlserver-auth,1433;Database=MarcadorAuthDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False
+
+      # CORS
+      AllowedOrigins__0: http://localhost:4200
+
+      # OAuth
+      OAuth__Google__ClientId: 1093931371189-qabnd72ubb9314qmp2mrma4rnuck43p1.apps.googleusercontent.com
+      OAuth__Google__ClientSecret: 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
+      OAuth__GitHub__ClientId: Ov23libhBVKlWMsSIKde
+      OAuth__GitHub__ClientSecret: 05871bce443d3f4668bfda73d3c873f9d4af7cd9
+      OAuth__FrontCallback: http://localhost:4200/auth/callback
+
+      # JWT / RSA
+      Jwt__Issuer: https://auth-service
+      Jwt__Audience: marcador-clients
+      Jwt__KeyId: auth-rsa-kid
+      Jwt__PrivateKeyPemPath: /run/secrets/auth_private.pem
+      Jwt__PublicKeyPemPath: /run/secrets/auth_public.pem
+      Jwt__ExpiresInMinutes: "5"
+      Jwt__RefreshDays: "7"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./secrets/auth_private.pem:/run/secrets/auth_private.pem:ro
+      - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
+    networks: [basketball_net]
+    profiles: ["auth"]
 
   # Microservicio de jugadores (PHP)
   players-service:
     build: ./MicroservicioPlayers
+    depends_on:
+      players-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: players-db
+      DB_DATABASE: players
+      DB_USERNAME: players
+      DB_PASSWORD: players123
+      FRONT_ORIGIN: http://localhost:4200
     ports:
       - "8082:8082"
-    depends_on:
-      - players-db
-    environment:
-      - DB_HOST=players-db
-      - DB_DATABASE=players
-      - DB_USERNAME=players
-      - DB_PASSWORD=players123
-      - FRONT_ORIGIN=http://localhost:4200
-    networks:
-      - basketball_net
+    networks: [basketball_net]
+    profiles: ["players"]
 
   # Microservicio de equipos
   teams-service:
     build: ./MicroservicioTeams
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+      AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "5003:8080"
-    depends_on:
-      - sqlserver
-      - auth-service
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
-      - AuthService__BaseUrl=http://auth-service:8080
-    networks:
-      - basketball_net
+    networks: [basketball_net]
+    profiles: ["teams"]
 
   # Microservicio de reportes
   reports-service:
-    build: ./MicroservicioReportes
+    build: ./MarcadorReportesPDF-Fase3
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+      AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "5004:8080"
-    depends_on:
-      - sqlserver
-      - auth-service
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
-      - AuthService__BaseUrl=http://auth-service:8080
-    networks:
-      - basketball_net
+    networks: [basketball_net]
+    profiles: ["reports"]
 
   # Frontend Angular
   frontend:
-    build: ./Frontend
+    build: ./marcador-front
+    depends_on:
+      auth-service:
+        condition: service_started
     ports:
       - "4200:80"
-    depends_on:
-      - auth-service
-      - players-service
-      - teams-service
-      - reports-service
-    networks:
-      - basketball_net
+    networks: [basketball_net]
+    profiles: ["front"]
 
 volumes:
   players_data:
   sqlserver_data:
+  mssql_auth_data:
 
 networks:
   basketball_net:

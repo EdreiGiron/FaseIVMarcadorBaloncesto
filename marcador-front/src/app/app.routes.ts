@@ -16,6 +16,16 @@ export const routes: Routes = [
   { path: 'login', component: Login, title: 'Iniciar sesión' },
   { path: 'register', component: RegistroUsuarios, title: 'Crear cuenta' },
 
+  // OAuth callback
+  {
+    path: 'auth/callback',
+    loadComponent: () =>
+      import('./auth/auth-callback.component')
+        .then(m => m.AuthCallbackComponent),
+    title: 'Autenticando…'
+  },
+
+
   // Dashboard (admin)
   {
     path: 'dashboard',

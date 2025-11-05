@@ -34,7 +34,7 @@ export class Login {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
   ) {
     this.form = this.fb.group({
       username: ['', Validators.required],
@@ -47,6 +47,11 @@ export class Login {
       this.router.navigate(['/dashboard']);
     }
   }
+
+  //Ingresar con Google
+  oauthGoogle() { this.auth.startOAuth('google'); }
+  //Ingresar con Github
+  oauthGithub() { this.auth.startOAuth('github'); }
 
   onSubmit(): void {
     if (this.form.invalid) return;
