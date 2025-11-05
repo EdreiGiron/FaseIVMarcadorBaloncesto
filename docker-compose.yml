@@ -146,6 +146,57 @@ services:
     networks: [basketball_net]
     profiles: ["reports"]
 
+
+  # Microservicio de partidos
+  matches-service:
+    build:
+      context: ./microserviciopartidos
+      dockerfile: Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: http://localhost:8084
+      DB_CONNECTION: sqlsrv
+      DB_HOST: sqlserver
+      DB_PORT: 1433
+      DB_DATABASE: desaweb
+      DB_USERNAME: sa
+      DB_PASSWORD: "D3saweb.2025$"
+      FRONT_ORIGIN: http://localhost:4200
+    ports:
+      - "8084:8084"
+    networks: [basketball_net]
+    profiles: ["matches"]
+
+
+  # Microservicio de torneos 
+  tournaments-service:
+    build: ./microserviciotorneos
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: http://localhost:8085
+      DB_CONNECTION: sqlsrv
+      DB_HOST: sqlserver
+      DB_PORT: 1433
+      DB_DATABASE: desaweb
+      DB_USERNAME: sa
+      DB_PASSWORD: "D3saweb.2025$"
+      FRONT_ORIGIN: http://localhost:4200
+      AuthService__BaseUrl: http://auth-service:8080
+    ports:
+      - "8085:8085"
+    networks: [basketball_net]
+    profiles: ["tournaments"]
+
   # Frontend Angular
   frontend:
     build: ./marcador-front
