@@ -1,8 +1,5 @@
 using AuthService.Api.Data;
 using AuthService.Api.Repositories;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using AspNet.Security.OAuth.GitHub;
 using AuthService.Api.Repositories.Interfaces;
 using AuthService.Api.Security;
@@ -28,18 +25,12 @@ builder.Services.AddScoped<IAuthService, AuthService.Api.Services.AuthService>()
 // RSA + JWT
 builder.Services.AddSingleton<RsaKeyService>();
 
-var jwt = builder.Configuration.GetSection("Jwt");
-var issuer = jwt["Issuer"];
-var audience = jwt["Audience"];
-
-
-
-
-// JWT
+// 1) Registrar el esquema por defecto = JWT
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 
+// 2) Configurar validación JWT con la clave pública RSA
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<RsaKeyService, IConfiguration>((o, rsaSvc, cfg) =>
     {
@@ -58,14 +49,13 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
     });
 
-
+// 3) Proveedores externos + cookie temporal "External"
 builder.Services.AddAuthentication()
     .AddCookie("External", o =>
     {
         o.ExpireTimeSpan = TimeSpan.FromMinutes(10);
         o.SlidingExpiration = false;
     })
-    // Google
     .AddGoogle("Google", o =>
     {
         o.ClientId = builder.Configuration["OAuth:Google:ClientId"]!;
@@ -75,7 +65,6 @@ builder.Services.AddAuthentication()
         o.Scope.Add("email");
         o.SaveTokens = true;
     })
-    // GitHub
     .AddGitHub("GitHub", o =>
     {
         o.ClientId = builder.Configuration["OAuth:GitHub:ClientId"]!;
@@ -88,7 +77,8 @@ builder.Services.AddAuthentication()
 
 // CORS
 var allowed = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-builder.Services.AddCors(o => o.AddPolicy("cors", p => p.WithOrigins(allowed).AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(o => o.AddPolicy("cors",
+    p => p.WithOrigins(allowed).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -96,14 +86,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Migraciones
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    db.Database.Migrate();
-}
-
-
+// Migraciones + seed
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
@@ -119,11 +102,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseCors("cors");
-app.UseSwagger(); app.UseSwaggerUI();
 app.UseRouting();
+app.UseCors("cors");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();
