@@ -6,7 +6,6 @@ using System.Security.Claims;
 [Route("me")]
 public class MeController : ControllerBase
 {
-    [Authorize]
     [HttpGet]
     public IActionResult Get()
     {

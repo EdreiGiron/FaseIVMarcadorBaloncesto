@@ -16,7 +16,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class EquiposService {
   private http = inject(HttpClient);
-  private base = '/api/equipos'; 
+  private base = 'http://localhost:8081/api/equipos'; 
 
   // GET /api/equipos?search=&ciudad=
   list(search?: string, ciudad?: string): Observable<EquipoAdminDto[]> {
@@ -47,18 +47,30 @@ logoOrFallback(file?: string | null, kind: 'local'|'visita'='local'): string {
   // POST /api/equipos  (multipart/form-data)
   create(data: EquipoCreateForm): Observable<EquipoAdminDto> {
     const form = new FormData();
-    form.append('Nombre', data.nombre);
-    form.append('Ciudad', data.ciudad);
-    if (data.logo) form.append('Logo', data.logo);
+    
+    // Debug: log what we're appending
+    console.log('Creating FormData with:', data);
+    
+    form.append('nombre', data.nombre);
+    form.append('ciudad', data.ciudad);
+    if (data.logo) form.append('logo', data.logo);
+    
+    // Debug: log FormData contents
+    console.log('FormData entries:');
+    for (let [key, value] of form.entries()) {
+      console.log(key, ':', value);
+    }
+    
+    console.log('Making POST to:', this.base);
     return this.http.post<EquipoAdminDto>(this.base, form);
   }
 
   // PUT /api/equipos/:id (multipart/form-data)
   update(id: number, data: EquipoUpdateForm): Observable<EquipoAdminDto> {
     const form = new FormData();
-    form.append('Nombre', data.nombre);
-    form.append('Ciudad', data.ciudad);
-    if (data.logo) form.append('Logo', data.logo);
+    form.append('nombre', data.nombre);
+    form.append('ciudad', data.ciudad);
+    if (data.logo) form.append('logo', data.logo);
     return this.http.put<EquipoAdminDto>(`${this.base}/${id}`, form);
   }
 

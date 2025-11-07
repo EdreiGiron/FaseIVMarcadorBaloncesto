@@ -40,3 +40,4 @@ Thumbs.db
 composer.phar
 secrets/auth_private.pem
 secrets/auth_public.pem
+init-auth-db.sql

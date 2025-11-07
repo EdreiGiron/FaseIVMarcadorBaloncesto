@@ -274,18 +274,7 @@ export class TableroComponent implements OnInit, OnDestroy {
     });
   }
 
-  renombrarCreando() {
-    const d = this._datos();
-    const nuevoLocal = prompt('Nuevo nombre (crea equipo NUEVO) local', d?.equipoLocal.nombre ?? '');
-    const nuevoVis   = prompt('Nuevo nombre (crea equipo NUEVO) visitante', d?.equipoVisitante.nombre ?? '');
-    if (nuevoLocal === null && nuevoVis === null) return;
-
-    this._esperando.set(true);
-    this.svc.renombrarEquiposNuevo(nuevoLocal ?? undefined, nuevoVis ?? undefined).subscribe({
-      next: (res) => { this._datos.set(res); this._esperando.set(false); },
-      error: () => this._esperando.set(false)
-    });
-  }
+  // Método eliminado - usar formulario de administración para crear equipos
 
   nuevoPartido() {
     this._esperando.set(true);
@@ -326,14 +315,14 @@ export class TableroComponent implements OnInit, OnDestroy {
   }
 
   finalizarAuto() {
-    if (this._autoFinalizado) return; // evitar duplicados
+    if (this._autoFinalizado) return; 
     this._autoFinalizado = true;
 
     this._esperando.set(true);
     this.svc.finalizarAuto().subscribe({
       next: () => {
         this._partidoTerminado = true;
-        this.cargar(); // refresca datos del marcador
+        this.cargar(); 
         this._esperando.set(false);
       },
       error: () => {
@@ -354,10 +343,10 @@ export class TableroComponent implements OnInit, OnDestroy {
     this.svc.terminarPartido(motivo || undefined).subscribe({
       next: (d: MarcadorGlobal) => {
         this._datos.set(d);
-        this._segundosLocal.set(d.tiempoRestante); // ya viene pausado
-        this._autoFinalizado = true; // ya quedó finalizado 
+        this._segundosLocal.set(d.tiempoRestante); 
+        this._autoFinalizado = true; 
         this._esperando.set(false);
-        this._partidoTerminado = true;   // bloquea botones
+        this._partidoTerminado = true;   
       },
       error: () => this._esperando.set(false)
     });

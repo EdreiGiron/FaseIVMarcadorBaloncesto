@@ -1,31 +1,37 @@
-<div class="form-wrap">
-  <h3>{{ modo === 'crear' ? 'Nuevo equipo' : 'Editar equipo' }}</h3>
-
-  <div class="field">
+<form (ngSubmit)="submit()" enctype="multipart/form-data" novalidate>
+  <div class="campo">
     <label>Nombre</label>
-    <input type="text" [(ngModel)]="nombre" placeholder="Nombre del equipo" />
+    <input
+      type="text"
+      name="nombre"
+      [(ngModel)]="nombre"
+      required
+      minlength="2"
+      placeholder="Ej. Lakers"
+    />
   </div>
 
-  <div class="field">
+  <div class="campo">
     <label>Ciudad</label>
-    <input type="text" [(ngModel)]="ciudad" placeholder="Ciudad" />
+    <input
+      type="text"
+      name="ciudad"
+      [(ngModel)]="ciudad"
+      required
+      minlength="2"
+      placeholder="Ej. Los Angeles"
+    />
   </div>
 
-  <div class="field">
-    <label>Logo (PNG/JPG/JPEG/WEBP, máx 2MB)</label>
-    <input type="file" accept=".png,.jpg,.jpeg,.webp" (change)="onFileChange($event)" />
+  <div class="campo">
+    <label>Logo (opcional)</label>
+    <input type="file" (change)="onFileChange($event)" accept="image/*" />
+    <img *ngIf="logoPreview" [src]="logoPreview" alt="preview" style="max-height:80px;margin-top:8px;">
   </div>
 
-  <div class="preview" *ngIf="logoPreview">
-    <img [src]="logoPreview" alt="preview" />
-  </div>
+  <p *ngIf="errorMsg() as e" class="error">{{ e }}</p>
 
-  <div class="err" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-
-  <div class="actions">
-    <button class="btn" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
-    <button class="btn primary" (click)="submit()" [disabled]="guardando()">
-      {{ guardando() ? 'Guardando...' : (modo === 'crear' ? 'Crear' : 'Guardar cambios') }}
-    </button>
-  </div>
-</div>
+  <button type="submit" [disabled]="guardando()">Guardar</button>
+  <button type="button" (click)="cancelar()">Cancelar</button>
+</form>
+s

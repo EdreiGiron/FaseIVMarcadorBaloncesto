@@ -1,6 +1,7 @@
 export interface JugadorAdminDto {
   id: number;
   nombre: string;
+  numero: number;
   puntos: number;
   faltas: number;
   posicion?: string | null;
@@ -10,12 +11,14 @@ export interface JugadorAdminDto {
 
 export interface JugadorCreateDto {
   nombre: string;
+  numero: number;
   equipoId: number;
   posicion?: string | null;
 }
 
 export interface JugadorUpdateDto {
   nombre: string;
+  numero: number;
   equipoId: number;
   posicion?: string | null;
 }

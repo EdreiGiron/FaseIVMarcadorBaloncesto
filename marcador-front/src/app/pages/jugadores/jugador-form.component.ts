@@ -25,6 +25,7 @@ export class JugadorFormComponent implements OnInit {
   @Output() cancelled = new EventEmitter<void>();
 
   nombre = ''; posicion = '';
+  numero: number | null = null;
   equipoId: number | null = null;
 
   equipos = signal<EquipoAdminDto[]>([]);
@@ -34,6 +35,7 @@ export class JugadorFormComponent implements OnInit {
   ngOnInit(): void {
     if (this.inicial) {
       this.nombre = this.inicial.nombre;
+      this.numero = this.inicial.numero;
       this.posicion = this.inicial.posicion ?? '';
       this.equipoId = this.inicial.equipoId;
     }
@@ -44,17 +46,18 @@ export class JugadorFormComponent implements OnInit {
   submit() {
     this.errorMsg.set(null);
     if (!this.nombre.trim()) return this.errorMsg.set('El nombre es obligatorio.');
+    if (this.numero == null || this.numero < 1) return this.errorMsg.set('El número es obligatorio y debe ser mayor a 0.');
     if (this.equipoId == null) return this.errorMsg.set('Debe seleccionar un equipo.');
 
     this.guardando.set(true);
     if (this.modo === 'crear') {
-      this.svc.create({ nombre: this.nombre.trim(), equipoId: this.equipoId, posicion: this.posicion?.trim() || undefined })
+      this.svc.create({ nombre: this.nombre.trim(), numero: this.numero, equipoId: this.equipoId, posicion: this.posicion?.trim() || undefined })
         .subscribe({
           next: dto => { this.guardando.set(false); this.saved.emit(dto); },
           error: err => { this.guardando.set(false); this.errorMsg.set(err?.error?.message || 'No se pudo crear el jugador.'); }
         });
     } else if (this.inicial) {
-      this.svc.update(this.inicial.id, { nombre: this.nombre.trim(), equipoId: this.equipoId, posicion: this.posicion?.trim() || undefined })
+      this.svc.update(this.inicial.id, { nombre: this.nombre.trim(), numero: this.numero, equipoId: this.equipoId, posicion: this.posicion?.trim() || undefined })
         .subscribe({
           next: dto => { this.guardando.set(false); this.saved.emit(dto); },
           error: err => { this.guardando.set(false); this.errorMsg.set(err?.error?.message || 'No se pudo actualizar el jugador.'); }

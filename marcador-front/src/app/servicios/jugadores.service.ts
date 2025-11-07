@@ -26,7 +26,7 @@ export class JugadoresService {
   listPaged(opts: {
     page: number; pageSize: number;
     search?: string; equipoNombre?: string; equipoId?: number; posicion?: string;
-    sortBy?: 'nombre'|'equipo'|'posicion'|'puntos'|'faltas';
+    sortBy?: 'nombre'|'numero'|'equipo'|'posicion'|'puntos'|'faltas';
     sortDir?: 'asc'|'desc';
   }): Observable<PagedResult<JugadorAdminDto>> {
     let params = new HttpParams().set('page', opts.page).set('pageSize', opts.pageSize);

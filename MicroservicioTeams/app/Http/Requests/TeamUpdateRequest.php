@@ -10,25 +10,25 @@ class TeamUpdateRequest extends FormRequest
     public function authorize(): bool { return true; }
 
     public function rules(): array {
-        $id = $this->route('id');
+        $id = $this->route('team')->id ?? $this->route('id');
 
         return [
-            'name'    => ['required','string','max:120',
+            'nombre'  => ['required','string','max:120',
                 Rule::unique('teams')
-                    ->ignore($id) // ignora el actual
-                    ->where(fn($q) => $q->where('city', $this->input('city'))),
+                    ->ignore($id)
+                    ->where(fn($q) => $q->where('ciudad', $this->input('ciudad'))),
             ],
-            'city'    => ['required','string','max:120'],
-            'logoUrl' => ['nullable','string','max:255'],
+            'ciudad'  => ['required','string','max:120'],
+            'logo'    => ['nullable','image','mimes:jpeg,png,jpg,gif','max:2048'],
         ];
     }
 
     public function validated($key = null, $default = null) {
         $data = parent::validated();
         return [
-            'name'     => $data['name'],
-            'city'     => $data['city'],
-            'logo_url' => $data['logoUrl'] ?? null,
+            'nombre'   => $data['nombre'],
+            'ciudad'   => $data['ciudad'],
+            'logo'     => $data['logo'] ?? null,
         ];
     }
 }

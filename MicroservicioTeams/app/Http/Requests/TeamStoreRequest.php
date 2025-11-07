@@ -11,23 +11,18 @@ class TeamStoreRequest extends FormRequest
 
     public function rules(): array {
         return [
-            'name'    => ['required','string','max:120',
-                // unique por (name, city)
-                Rule::unique('teams')->where(fn($q) =>
-                    $q->where('city', $this->input('city'))
-                ),
-            ],
-            'city'    => ['required','string','max:120'],
-            'logoUrl' => ['nullable','string','max:255'],
+            'nombre'  => ['required','string','max:120'],
+            'ciudad'  => ['required','string','max:120'],
+            'logo'    => ['nullable','image','mimes:jpeg,png,jpg,gif','max:2048'],
         ];
     }
 
     public function validated($key = null, $default = null) {
         $data = parent::validated();
         return [
-            'name'     => $data['name'],
-            'city'     => $data['city'],
-            'logo_url' => $data['logoUrl'] ?? null,
+            'nombre'   => $data['nombre'],
+            'ciudad'   => $data['ciudad'],
+            'logo'     => $data['logo'] ?? null,
         ];
     }
 }

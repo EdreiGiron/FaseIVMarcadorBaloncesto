@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
  *   - Gestión de equipos (CRUD).
  *   - Listado paginado y listado simple.
  *   - Manejo de logos (archivo), exponiéndolos por /storage/logos
-*/
+ */
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+use App\Http\Requests\TeamStoreRequest;
+use App\Http\Requests\TeamUpdateRequest;
 
 class TeamController extends Controller
 {
@@ -50,37 +54,50 @@ class TeamController extends Controller
 
     public function store(Request $request)
     {
-        // Si viene JSON, merge a $request
-        if ($request->isJson()) {
-            $request->merge($request->json()->all());
+        try {
+            // Detectar si viene en JSON puro y normalizar a claves esperadas
+            if ($request->isJson() && empty($request->all())) {
+                $json = $request->getContent();
+                $data = json_decode($json, true) ?: [];
+                $request->merge($data);
+            }
+
+            // Soportar mayúsculas usadas en algunos formularios
+            if ($request->has('Nombre'))
+                $request->merge(['nombre' => $request->input('Nombre')]);
+            if ($request->has('Ciudad'))
+                $request->merge(['ciudad' => $request->input('Ciudad')]);
+
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:120',
+                'ciudad' => 'required|string|max:120',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $data = [
+                'nombre' => $validated['nombre'],
+                'ciudad' => $validated['ciudad'],
+            ];
+
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('logos', 'public');
+                $data['logo_url'] = url('storage/' . $logoPath);
+            }
+
+            $team = Team::create($data);
+            return response()->json($team, 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validación fallida',
+                'errors' => $e->errors(),
+                'received' => $request->all(), // para depurar en UI
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Error de servidor',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Mapear claves en inglés -> español
-        $request->merge([
-            'nombre' => $request->input('nombre', $request->input('name')),
-            'ciudad' => $request->input('ciudad', $request->input('city')),
-        ]);
-
-        // Validación (logo opcional, máx 2MB)
-        $data = validator($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'ciudad' => 'nullable|string|max:255',
-            'logo' => 'nullable|file|image|mimes:png,jpg,jpeg,webp|max:2048',
-        ])->validate();
-
-        $logoUrl = null;
-        if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('public/logos');
-            $logoUrl = '/storage/logos/' . basename($path);
-        }
-
-        $team = \App\Models\Team::create([
-            'nombre' => $data['nombre'],
-            'ciudad' => $data['ciudad'] ?? null,
-            'logo_url' => $logoUrl,
-        ]);
-
-        return response()->json($team, 201);
     }
 
 
@@ -91,35 +108,34 @@ class TeamController extends Controller
 
     public function update(Request $request, Team $team)
     {
-        if ($request->isJson()) {
-            $request->merge($request->json()->all());
-        }
-        $request->merge([
-            'nombre' => $request->input('nombre', $request->input('name', $team->nombre)),
-            'ciudad' => $request->input('ciudad', $request->input('city', $team->ciudad)),
+        // Soportar mayúsculas usadas en algunos formularios
+        if ($request->has('Nombre'))
+            $request->merge(['nombre' => $request->input('Nombre')]);
+        if ($request->has('Ciudad'))
+            $request->merge(['ciudad' => $request->input('Ciudad')]);
+
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:120',
+            'ciudad' => 'required|string|max:120',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = validator($request->all(), [
-            'nombre' => 'sometimes|required|string|max:255',
-            'ciudad' => 'nullable|string|max:255',
-            'logo' => 'nullable|file|image|mimes:png,jpg,jpeg,webp|max:2048',
-        ])->validate();
+        $data = [
+            'nombre' => $validated['nombre'],
+            'ciudad' => $validated['ciudad'],
+        ];
 
         if ($request->hasFile('logo')) {
             if ($team->logo_url) {
-                $old = str_replace('/storage/logos/', 'public/logos/', $team->logo_url);
-                \Storage::delete($old);
+                $old = str_replace(url('storage/'), '', $team->logo_url);
+                Storage::disk('public')->delete($old);
             }
-            $path = $request->file('logo')->store('public/logos');
-            $team->logo_url = '/storage/logos/' . basename($path);
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $data['logo_url'] = url('storage/' . $logoPath);
         }
 
-        $team->fill([
-            'nombre' => $data['nombre'] ?? $team->nombre,
-            'ciudad' => $data['ciudad'] ?? $team->ciudad,
-        ])->save();
-
-        return response()->json($team);
+        $team->update($data);
+        return response()->json($team, 200);
     }
     public function destroy(Team $team): JsonResponse
     {

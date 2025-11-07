@@ -7,6 +7,11 @@
   </div>
 
   <div class="field">
+    <label>Número</label>
+    <input type="number" [(ngModel)]="numero" placeholder="Número de camiseta" min="1" max="99" />
+  </div>
+
+  <div class="field">
     <label>Equipo</label>
     <select [(ngModel)]="equipoId">
       <option [ngValue]="null">-- Seleccione equipo --</option>

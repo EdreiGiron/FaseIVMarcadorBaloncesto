@@ -11,7 +11,7 @@ RUN npm run build --configuration=production
 # ===== nginx ===== Stage 2: Serve app with Nginx
 FROM nginx:alpine
 # copia la app Angular
-COPY --from=build /app/dist/marcador-front/browser /usr/share/nginx/html
+COPY --from=build /app/dist/marcador-frontend/browser /usr/share/nginx/html
 # nginx.conf propio (con proxy /api → http://api:5051)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

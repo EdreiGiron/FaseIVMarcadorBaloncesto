@@ -1,4 +1,23 @@
 services:
+  # PostgreSQL para teams
+  teams-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: teams
+      POSTGRES_USER: teams
+      POSTGRES_PASSWORD: teams123
+    ports:
+      - "5433:5432"
+    volumes:
+      - teams_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teams -d teams"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [basketball_net]
+    profiles: ["teams"]
+
   # MySQL para players
   players-db:
     image: mysql:8.0
@@ -103,30 +122,48 @@ services:
     depends_on:
       players-db:
         condition: service_healthy
+      auth-service:
+        condition: service_started
     environment:
       DB_HOST: players-db
       DB_DATABASE: players
       DB_USERNAME: players
       DB_PASSWORD: players123
       FRONT_ORIGIN: http://localhost:4200
+      AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "8082:8082"
+    volumes:
+      - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
     networks: [basketball_net]
     profiles: ["players"]
 
-  # Microservicio de equipos
+  # Microservicio de equipos (PHP)
   teams-service:
     build: ./MicroservicioTeams
     depends_on:
-      sqlserver:
+      teams-db:
         condition: service_healthy
       auth-service:
         condition: service_started
     environment:
-      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=desaweb;User Id=sa;Password=D3saweb.2025$;TrustServerCertificate=true;
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:8081
+      DB_CONNECTION: pgsql
+      DB_HOST: teams-db
+      DB_PORT: 5432
+      DB_DATABASE: teams
+      DB_USERNAME: teams
+      DB_PASSWORD: teams123
+      FRONT_ORIGIN: http://localhost:4200
       AuthService__BaseUrl: http://auth-service:8080
     ports:
-      - "5003:8080"
+      - "8081:8081"
+    volumes:
+      - ./MicroservicioTeams/storage:/app/storage
+      - ./MicroservicioTeams/public:/app/public
+      - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
     networks: [basketball_net]
     profiles: ["teams"]
 
@@ -209,6 +246,7 @@ services:
     profiles: ["front"]
 
 volumes:
+  teams_data:
   players_data:
   sqlserver_data:
   mssql_auth_data:

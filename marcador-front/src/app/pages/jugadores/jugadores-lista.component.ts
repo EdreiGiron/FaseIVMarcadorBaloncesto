@@ -24,7 +24,7 @@ export class JugadoresListaComponent implements OnInit {
 
   // paginado/orden
   page = 1; pageSize = 10; totalItems = 0;
-  sortBy: 'nombre'|'equipo'|'posicion'|'puntos'|'faltas' = 'nombre';
+  sortBy: 'nombre'|'numero'|'equipo'|'posicion'|'puntos'|'faltas' = 'nombre';
   sortDir: 'asc'|'desc' = 'asc';
 
   // estado UI
@@ -65,7 +65,7 @@ cargarLista(): void {
   get rangeEnd()   { return Math.min(this.page*this.pageSize, this.totalItems); }
   goPage(p: number) { this.page = Math.min(Math.max(1,p), this.totalPages); this.cargarLista(); }
   changePageSize(n: number | string) { this.pageSize = Number(n); this.page = 1; this.cargarLista(); }
-  toggleSort(f: 'nombre'|'equipo'|'posicion'|'puntos'|'faltas'){ if(this.sortBy===f)this.sortDir=this.sortDir==='asc'?'desc':'asc'; else{this.sortBy=f;this.sortDir='asc';} this.cargarLista(); }
+  toggleSort(f: 'nombre'|'numero'|'equipo'|'posicion'|'puntos'|'faltas'){ if(this.sortBy===f)this.sortDir=this.sortDir==='asc'?'desc':'asc'; else{this.sortBy=f;this.sortDir='asc';} this.cargarLista(); }
 
   onBuscarChange(){ clearTimeout((this as any)._deb); (this as any)._deb=setTimeout(()=>this.cargarLista(),300); }
   limpiarFiltros(){ this.search=''; this.equipoNombre=''; this.posicion=''; this.equipoId=null; this.page=1; this.cargarLista(); }

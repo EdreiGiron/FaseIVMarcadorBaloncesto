@@ -25,6 +25,7 @@
     <thead>
       <tr>
         <th (click)="toggleSort('nombre')" style="cursor:pointer">Nombre</th>
+        <th (click)="toggleSort('numero')" style="cursor:pointer">Número</th>
         <th (click)="toggleSort('equipo')" style="cursor:pointer">Equipo</th>
         <th (click)="toggleSort('posicion')" style="cursor:pointer">Posición</th>
         <th (click)="toggleSort('puntos')" style="cursor:pointer">Puntos</th>
@@ -35,6 +36,7 @@
     <tbody>
       <tr *ngFor="let j of jugadores(); trackBy: trackById">
         <td>{{ j.nombre }}</td>
+        <td>{{ j.numero }}</td>
         <td>{{ j.equipoNombre }}</td>
         <td>{{ j.posicion || '-' }}</td>
         <td>{{ j.puntos }}</td>
@@ -47,7 +49,7 @@
         </td>
       </tr>
       <tr *ngIf="!hasRows">
-        <td colspan="6" class="empty">Sin resultados.</td>
+        <td colspan="7" class="empty">Sin resultados.</td>
       </tr>
     </tbody>
   </table>

@@ -56,38 +56,37 @@ export const routes: Routes = [
     title: 'Tablero público'
   },
 
+  // Redirects simples
+  { path: 'equipos', redirectTo: 'admin/equipos', pathMatch: 'full' },
+
   // ADMIN (todas requieren Admin)
   {
     path: 'admin/equipos',
     loadComponent: () => import('./pages/equipos/equipos-lista.component')
       .then(m => m.EquiposListaComponent),
     title: 'Gestión de Equipos',
-    canActivate: [authGuard, RoleGuard],
-    data: { roles: ['Admin'] }
+    canActivate: [authGuard]
   },
   {
     path: 'admin/jugadores',
     loadComponent: () => import('./pages/jugadores/jugadores-lista.component')
       .then(m => m.JugadoresListaComponent),
     title: 'Gestión de Jugadores',
-    canActivate: [authGuard, RoleGuard],
-    data: { roles: ['Admin'] }
+    canActivate: [authGuard]
   },
   {
     path: 'admin/usuarios',
     loadComponent: () => import('./pages/usuarios/usuarios.lista.component')
       .then(m => m.UsuariosListaComponent),
     title: 'Gestión de Usuarios',
-    canActivate: [authGuard, RoleGuard],
-    data: { roles: ['Admin'] }
+    canActivate: [authGuard]
   },
   {
     path: 'admin/roles',
     loadComponent: () => import('./pages/roles/roles.lista.component')
       .then(m => m.RolesListaComponent),
     title: 'Gestión de Roles',
-    canActivate: [authGuard, RoleGuard],
-    data: { roles: ['Admin'] }
+    canActivate: [authGuard]
   },
 
   // Partidos

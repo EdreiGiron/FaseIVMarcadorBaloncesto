@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Team extends Model
 {
     protected $fillable = ['nombre','ciudad','logo_url'];
+
 }
