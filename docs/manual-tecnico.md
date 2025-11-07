@@ -1,5 +1,13 @@
 # Manual Técnico - Sistema Marcador de Baloncesto
 
+## Integrantes
+- Jenny Sofia Morales López 7690 08 6790          |         Aporte 20%
+- Cristian Alejandro Melgar Ordoñez 7690 21 8342  |         Aporte 20%
+- Edrei Andrés Girón Leonardo 7690-21-218         |         Aporte 20%
+- Edward Alexander Aguilar Flores 7690-21-7651    |         Aporte 20%
+- Diego Fernando Velásquez Pichilla 7690-16-3882  |         Aporte 20%
+
+
 Dominio registrado basketmarcador.online
 
 Llave ssh -i ~/.ssh/id_ed25519 melgust@91.99.197.226
