@@ -1,5 +1,11 @@
 # Manual Técnico - Sistema Marcador de Baloncesto
 
+Dominio registrado basketmarcador.online
+
+Llave ssh -i ~/.ssh/id_ed25519 melgust@91.99.197.226
+
+IP Pública 91.99.197.226
+
 ## Tabla de Contenidos
 1. [Arquitectura del Sistema](#arquitectura-del-sistema)
 2. [Tecnologías Utilizadas](#tecnologías-utilizadas)
