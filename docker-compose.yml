@@ -94,21 +94,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-
-      # Connection String
       ConnectionStrings__DefaultConnection: Server=sqlserver-auth,1433;Database=MarcadorAuthDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False
-
-      # CORS
       AllowedOrigins__0: http://localhost:4200
-
-      # OAuth
       OAuth__Google__ClientId: 1093931371189-qabnd72ubb9314qmp2mrma4rnuck43p1.apps.googleusercontent.com
       OAuth__Google__ClientSecret: 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
       OAuth__GitHub__ClientId: Ov23libhBVKlWMsSIKde
       OAuth__GitHub__ClientSecret: 05871bce443d3f4668bfda73d3c873f9d4af7cd9
       OAuth__FrontCallback: http://localhost:4200/auth/callback
-
-      # JWT / RSA
       Jwt__Issuer: https://auth-service
       Jwt__Audience: marcador-clients
       Jwt__KeyId: auth-rsa-kid
@@ -219,50 +211,86 @@ services:
     networks: [basketball_net]
     profiles: ["reports"]
 
-  # Microservicio de partidos
+<<<<<<< HEAD
+=======
+  # SQL SERVER PARTIDOS
   matches-service:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: matches-service
+    environment:
+      SA_PASSWORD: "Str0ngP@ssw0rd2025!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "14332:1433"
+    volumes:
+      - sqlserver-matches_data:/var/opt/mssql
+    networks: [basketball_net]
+    profiles: ["matches"]
+
+>>>>>>> 5e4516898a90b609e4a6b2d330f4a41b98e9091c
+  # Microservicio de partidos
+  micro_partidos:
     build:
       context: ./micro_partidos
       dockerfile: Dockerfile
     depends_on:
-      sqlserver:
-        condition: service_healthy
+      matches-service:
+        condition: service_started
     environment:
       APP_ENV: production
       APP_DEBUG: false
       APP_URL: http://localhost:8084
       DB_CONNECTION: sqlsrv
-      DB_HOST: sqlserver
+      DB_HOST: matches-service
       DB_PORT: 1433
       DB_DATABASE: desaweb
       DB_USERNAME: sa
-      DB_PASSWORD: "D3saweb.2025$"
+      DB_PASSWORD: "Str0ngP@ssw0rd2025!"
       FRONT_ORIGIN: http://localhost:4200
     ports:
       - "8084:8084"
     networks: [basketball_net]
     profiles: ["matches"]
 
+<<<<<<< HEAD
   # Microservicio de torneos 
   tournaments-service:
     build: ./api_torneos
+=======
+  # SQL SERVER TORNEOS  
+  tournaments-service:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: tournaments-service
+    environment:
+      SA_PASSWORD: "Str0ngP@ssw0rd2025!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "14334:1433"
+    volumes:
+      - sqlserver-tournaments_data:/var/opt/mssql
+    networks: [basketball_net]
+    profiles: ["tournaments"]
+
+  # Microservicio de torneos
+  api_torneos:
+    build:
+      context: ./api_torneos
+      dockerfile: Dockerfile
+>>>>>>> 5e4516898a90b609e4a6b2d330f4a41b98e9091c
     depends_on:
-      sqlserver:
-        condition: service_healthy
-      auth-service:
+      tournaments-service:
         condition: service_started
     environment:
       APP_ENV: production
       APP_DEBUG: false
       APP_URL: http://localhost:8085
       DB_CONNECTION: sqlsrv
-      DB_HOST: sqlserver
+      DB_HOST: tournaments-service
       DB_PORT: 1433
       DB_DATABASE: desaweb
       DB_USERNAME: sa
-      DB_PASSWORD: "D3saweb.2025$"
+      DB_PASSWORD: "Str0ngP@ssw0rd2025!"
       FRONT_ORIGIN: http://localhost:4200
-      AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "8085:8085"
     networks: [basketball_net]
@@ -284,6 +312,8 @@ volumes:
   players_data:
   sqlserver_data:
   mssql_auth_data:
+  sqlserver-matches_data:
+  sqlserver-tournaments_data:
 
 networks:
   basketball_net:

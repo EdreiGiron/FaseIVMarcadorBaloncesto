@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:6
+    container_name: rt_mongo
+    ports: ["27017:27017"]
+    volumes:
+      - mongo_rt:/data/db
+
+  registro-torneos:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: registro_torneos_api
+    depends_on: [mongo]
+    environment:
+      # Mongo
+      MONGO__CADENACONEXION: "mongodb://mongo:27017"
+      MONGO__BASEDATOS: "registro_torneos"
+      # JWT 
+      JWT__KEY: "p2F^4QkB!wN0r89@Gz7mLk#uS1eY8xD3fV6hJ9qT2zC4mR7sP0tB5nU1wX2yZ3a"
+      JWT__ISSUER: "MarcadorApi"
+      JWT__AUDIENCE: "MarcadorApiUsers"
+      # CORS
+      ALLOWED_ORIGINS: "http://localhost:4200"
+      # api_torneos
+      TORNEOS__BASEURL: "http://host.docker.internal:8083/api"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    ports:
+      - "5057:8080"
+
+volumes:
+  mongo_rt:
