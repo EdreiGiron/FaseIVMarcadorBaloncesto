@@ -35,6 +35,32 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
+
+  "/api/partidos": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/partidos/*": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/torneos": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/torneos/*": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+
   "/pdf": {
     "target": "http://localhost:5055",
     "secure": false,
