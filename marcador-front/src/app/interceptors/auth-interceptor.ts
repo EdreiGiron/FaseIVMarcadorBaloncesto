@@ -9,6 +9,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
+  // Adjunta el token SOLO a endpoints de tu backend (incluye /pdf)
+  const needsAuth =
+    req.url.startsWith('/api') ||
+    req.url.startsWith('/pdf') ||
+    req.url.startsWith('/auth') ||
+    req.url.startsWith('/me') ||
+    req.url.startsWith('/roles');
+
   const access = auth.getAccessToken();
   if (access) {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${access}` } });

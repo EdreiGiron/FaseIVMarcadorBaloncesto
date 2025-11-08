@@ -3,11 +3,12 @@ import os
 import io
 import requests
 from datetime import datetime
+from io import BytesIO
 
 from fastapi import FastAPI, Query, Header, Response, HTTPException
 from fastapi.responses import PlainTextResponse
 
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, letter
 from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
@@ -15,36 +16,42 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.utils import ImageReader
 
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
-from io import BytesIO
-from fastapi import Query, Response
-
 # -----------------------------------------------------------------------------
 # Config básica
 # -----------------------------------------------------------------------------
 app = FastAPI(title="Marcador Reportes", version="1.0.0")
 
-# Microservicios URLs
-TEAMS_BASE = os.getenv("TEAMS_BASE", "http://localhost:8081")
-PLAYERS_BASE = os.getenv("PLAYERS_BASE", "http://localhost:8082")
-MATCHES_BASE = os.getenv("MATCHES_BASE", "http://localhost:5130")  # Usar C# backend
-BACK_BASE = os.getenv("BACK_BASE", "http://localhost:5130")  # Para temporadas y legacy
+# Bases por defecto pensadas para red interna de Docker.
+# Puedes sobreescribirlas en docker-compose con environment:
+#   TEAMS_BASE=http://teams-service:8081
+#   PLAYERS_BASE=http://players-service:8082
+#   MATCHES_BASE=http://matches-service:8084  (si lo tienes en contenedor)
+TEAMS_BASE   = os.getenv("TEAMS_BASE",   "http://teams-service:8081")
+PLAYERS_BASE = os.getenv("PLAYERS_BASE", "http://players-service:8082")
+MATCHES_BASE = os.getenv("MATCHES_BASE", "http://localhost:5130")
+BACK_BASE    = os.getenv("BACK_BASE",    MATCHES_BASE)
 
-EQUIPOS_PATH = "/api/equipos"
-PLAYERS_BY_TEAM = "/api/jugadores"
-MATCH_HISTORY = "/api/partidos"
+# Paths o URLs completas (si empiezan con http, se usan tal cual)
+EQUIPOS_PATH    = os.getenv("EQUIPOS_PATH", "/api/equipos")
+PLAYERS_BY_TEAM = os.getenv("PLAYERS_BY_TEAM", "/api/jugadores")
+MATCH_HISTORY   = os.getenv("MATCH_HISTORY", "/api/partidos")
 
-# -----------------------------------------------------------------------------
+
+def _url(base: str, path_or_url: str) -> str:
+    """Devuelve URL final. Si path_or_url ya es una URL completa, la retorna tal cual;
+    si no, concatena base + path."""
+    return path_or_url if path_or_url.startswith("http") else f"{base}{path_or_url}"
+
+
 def _hdr(authorization: str | None):
     return {"Authorization": authorization} if authorization else {}
+
 
 def _ensure_ok(r: requests.Response, url: str):
     if not r.ok:
         detail = r.text[:300] if r.text else ""
         raise HTTPException(status_code=r.status_code, detail=f"{url} → {r.status_code}: {detail}")
+
 
 def _pdf_bytes(
     title: str,
@@ -109,6 +116,7 @@ def _pdf_bytes(
 def root():
     return "Marcador Reportes API – OK"
 
+
 @app.get("/health", response_class=PlainTextResponse)
 def health():
     return "ok"
@@ -122,7 +130,7 @@ def pdf_equipos(
     ciudad: str | None = Query(default=None),
     authorization: str | None = Header(default=None),
 ):
-    url = f"{TEAMS_BASE}{EQUIPOS_PATH}"
+    url = _url(TEAMS_BASE, EQUIPOS_PATH)
     params = {}
     if search: params["search"] = search
     if ciudad: params["ciudad"] = ciudad
@@ -134,25 +142,25 @@ def pdf_equipos(
     # Create PDF with logos
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=36, rightMargin=36, topMargin=42, bottomMargin=42)
-    
+
     styles = getSampleStyleSheet()
     h1 = ParagraphStyle("h1", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=22, leading=24, spaceAfter=6)
     sub = ParagraphStyle("sub", parent=styles["Normal"], fontSize=10, textColor=colors.HexColor("#666"), spaceAfter=16)
-    
+
     story = []
     story.append(Paragraph("Reporte de Equipos Registrados", h1))
     story.append(Paragraph("Generado por MarcadorReportesPDF-Fase3", sub))
-    
+
     # Table with logos
     headers_tbl = ["Logo", "Id", "Equipo", "Ciudad", "Puntos", "Faltas"]
     data = [headers_tbl]
-    
+
     for e in equipos:
         logo_cell = ""
         logo_url = e.get("LogoUrl") or e.get("logoUrl")
-        
+
         team_name = str(e.get("nombre") or e.get("Nombre") or "").lower().replace(" ", "_")
-        
+
         if logo_url:
             try:
                 logo_response = requests.get(logo_url, timeout=5)
@@ -173,7 +181,7 @@ def pdf_equipos(
                     logo_cell = "Sin logo"
             except:
                 logo_cell = "Sin logo"
-            
+
         data.append([
             logo_cell,
             str(e.get("id") or e.get("Id") or ""),
@@ -182,7 +190,7 @@ def pdf_equipos(
             str(e.get("puntos") or e.get("Puntos") or 0),
             str(e.get("faltas") or e.get("Faltas") or 0),
         ])
-    
+
     table = Table(data, colWidths=[50, 30, 120, 80, 50, 50], repeatRows=1)
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f2f2f2")),
@@ -201,11 +209,11 @@ def pdf_equipos(
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    
+
     story.append(table)
     doc.build(story)
     buf.seek(0)
-    
+
     return Response(
         content=buf.read(),
         media_type="application/pdf",
@@ -221,7 +229,7 @@ def pdf_jugadores_por_equipo(
     authorization: str | None = Header(default=None),
 ):
     # Obtener jugadores
-    url = f"{PLAYERS_BASE}{PLAYERS_BY_TEAM}"
+    url = _url(PLAYERS_BASE, PLAYERS_BY_TEAM)
     params = {"equipoId": equipoId}
 
     r = requests.get(url, params=params, headers=_hdr(authorization), timeout=30)
@@ -230,9 +238,9 @@ def pdf_jugadores_por_equipo(
 
     if isinstance(jugadores, dict) and 'items' in jugadores:
         jugadores = jugadores['items']
-    
+
     # Obtener nombre del equipo
-    team_url = f"{TEAMS_BASE}{EQUIPOS_PATH}/{equipoId}"
+    team_url = _url(TEAMS_BASE, f"{EQUIPOS_PATH}/{equipoId}")
     try:
         team_r = requests.get(team_url, headers=_hdr(authorization), timeout=30)
         if team_r.ok:
@@ -242,7 +250,7 @@ def pdf_jugadores_por_equipo(
             team_name = f"Equipo {equipoId}"
     except:
         team_name = f"Equipo {equipoId}"
-    
+
     headers_tbl = ["#", "Jugador", "Posición", "Número"]
     rows: list[list[str]] = []
     for i, j in enumerate(jugadores, start=1):
@@ -269,11 +277,11 @@ def pdf_historial_partidos(
     temporadaId: int | None = Query(None),
     authorization: str | None = Header(default=None),
 ):
-    url = f"{MATCHES_BASE}{MATCH_HISTORY}"
+    url = _url(MATCHES_BASE, MATCH_HISTORY)
 
     params = {}
     if temporadaId is not None:
-        params["torneo_id"] = temporadaId  # PHP microservice uses torneo_id
+        params["torneo_id"] = temporadaId  # PHP microservice usa torneo_id
 
     r = requests.get(url, params=params, headers=_hdr(authorization), timeout=30)
     _ensure_ok(r, url)
@@ -285,26 +293,18 @@ def pdf_historial_partidos(
     for i, p in enumerate(partidos, start=1):
         if not isinstance(p, dict):
             continue
-        # C# backend field mapping
         local = p.get("EquipoLocalNombre") or f"Equipo {p.get('EquipoLocalId', '?')}"
-        vis = p.get("EquipoVisitanteNombre") or f"Equipo {p.get('EquipoVisitanteId', '?')}"
-        
+        vis   = p.get("EquipoVisitanteNombre") or f"Equipo {p.get('EquipoVisitanteId', '?')}"
+
         ml = p.get("MarcadorLocal") or p.get("PuntosLocal") or 0
         mv = p.get("MarcadorVisitante") or p.get("PuntosVisitante") or 0
         fh = p.get("FechaHora") or ""
         try:
-            # formateo 
             fh_fmt = datetime.fromisoformat(str(fh).replace("Z","")).strftime("%Y-%m-%d %H:%M")
         except Exception:
             fh_fmt = str(fh)
 
-        rows.append([
-            str(i),
-            fh_fmt,
-            str(local),
-            str(vis),
-            f"{ml} - {mv}",
-        ])
+        rows.append([str(i), fh_fmt, str(local), str(vis), f"{ml} - {mv}"])
 
     subtitle = f"Temporada: {temporadaId if temporadaId is not None else 'todas'}"
     pdf = _pdf_bytes("Historial de partidos", headers_tbl, rows, subtitle)
@@ -322,7 +322,7 @@ def pdf_roster(
     partidoId: int = Query(...),
     authorization: str | None = Header(default=None),
 ):
-    url = f"{MATCHES_BASE}/api/partidos/{partidoId}/roster"
+    url = _url(MATCHES_BASE, f"{MATCH_HISTORY}/{partidoId}/roster")
 
     r = requests.get(url, headers=_hdr(authorization), timeout=30)
     _ensure_ok(r, url)
@@ -353,22 +353,28 @@ def pdf_scouting(
     jugadorId: int = Query(...),
     authorization: str | None = Header(default=None),
 ):
-    # Obtener datos del jugador
-    jurl = f"{PLAYERS_BASE}/api/players/{jugadorId}"
+    # Intento 1: /api/jugadores/{id}
+    jurl = _url(PLAYERS_BASE, f"/api/jugadores/{jugadorId}")
     rj = requests.get(jurl, headers=_hdr(authorization), timeout=30)
-    _ensure_ok(rj, jurl)
+    if not rj.ok:
+        # Fallback: /api/players/{id} (compatibilidad)
+        jurl_alt = _url(PLAYERS_BASE, f"/api/players/{jugadorId}")
+        rj = requests.get(jurl_alt, headers=_hdr(authorization), timeout=30)
+        _ensure_ok(rj, jurl_alt)
+    else:
+        _ensure_ok(rj, jurl)
     j = rj.json() or {}
 
-    nombre = str(j.get("nombre") or j.get("name") or "")
+    nombre   = str(j.get("nombre") or j.get("name") or "")
     posicion = str(j.get("posicion") or j.get("position") or "–")
-    numero = str(j.get("numero") or j.get("number") or "–")
-    equipo = str(j.get("equipoNombre") or j.get("team_name") or f"Equipo {j.get('equipoId', '?')}")
+    numero   = str(j.get("numero") or j.get("number") or "–")
+    equipo   = str(j.get("equipoNombre") or j.get("team_name") or f"Equipo {j.get('equipoId', '?')}")
     puntos_totales = j.get("puntos") or 0
     faltas_totales = j.get("faltas") or 0
 
     # Obtener partidos del equipo para calcular estadísticas básicas
     try:
-        partidos_url = f"{MATCHES_BASE}/api/partidos"
+        partidos_url = _url(MATCHES_BASE, MATCH_HISTORY)
         partidos_params = {"equipo_id": j.get("equipoId") or j.get("team_id"), "estado": "Finalizado"}
         partidos_r = requests.get(partidos_url, params=partidos_params, headers=_hdr(authorization), timeout=30)
         partidos_jugados = len(partidos_r.json()) if partidos_r.ok else 1
@@ -381,13 +387,7 @@ def pdf_scouting(
 
     # Tabla simplificada con datos disponibles
     headers_tbl = ["Puntos Totales", "Faltas Totales", "Partidos Jugados", "PPG", "FPG"]
-    rows = [[
-        str(puntos_totales),
-        str(faltas_totales), 
-        str(partidos_jugados),
-        str(ppg),
-        str(fpg)
-    ]]
+    rows = [[str(puntos_totales), str(faltas_totales), str(partidos_jugados), str(ppg), str(fpg)]]
 
     subtitle = f"{nombre} • #{numero} • {posicion} • {equipo}"
     pdf = _pdf_bytes("Estadísticas del Jugador", headers_tbl, rows, subtitle)
@@ -396,17 +396,18 @@ def pdf_scouting(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="estadisticas_jugador_{jugadorId}.pdf"'}
     )
- #----------------------------------------------------
- # /pdf/lideres?metric=puntos
- #----------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# /pdf/lideres?metric=puntos
+# -----------------------------------------------------------------------------
 @app.get("/pdf/lideres")
 def pdf_lideres(
     metric: str = Query(default="puntos", regex="^(puntos|faltas)$"),
     equipoId: int | None = Query(default=None),
     authorization: str | None = Header(default=None)
 ):
-    base = os.getenv("BACK_BASE", "http://localhost:5130")
-    url_l = f"{base}/api/estadisticas/lideres"
+    base = BACK_BASE
+    url_l = _url(base, "/api/estadisticas/lideres")
     params = {"metric": metric}
     if equipoId: params["equipoId"] = equipoId
 
@@ -417,14 +418,14 @@ def pdf_lideres(
         else:
             raise Exception("no leaders endpoint")
     except Exception:
-  
+        # Fallback: construir ranking desde /api/jugadores
         params_j = {}
         if equipoId: params_j["equipoId"] = equipoId
-        r2 = requests.get(f"{base}/api/jugadores", params=params_j, headers=_hdr(authorization), timeout=20)
+        r2 = requests.get(_url(base, "/api/jugadores"), params=params_j, headers=_hdr(authorization), timeout=20)
         _ensure_ok(r2, "/api/jugadores")
         players = r2.json()
         field = "puntos" if metric == "puntos" else "faltas"
-  
+
         norm = []
         for j in players:
             norm.append({
@@ -437,6 +438,7 @@ def pdf_lideres(
 
     top3 = data[:3]
     resto = data[3:13]
+
     # ===== PDF =====
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=letter, leftMargin=36, rightMargin=36, topMargin=42, bottomMargin=36)
@@ -466,7 +468,6 @@ def pdf_lideres(
         ]))
         story += [Paragraph("<b>Top 3</b>", st['Heading2']), Spacer(1,6), t, Spacer(1,14)]
 
-    # RANKING de jugadores
     if resto:
         rdata = [["#", "Jugador", "Equipo", "Posición", "Valor"]]
         for i, p in enumerate(resto, start=4):
@@ -485,10 +486,11 @@ def pdf_lideres(
     doc.build(story)
     buf.seek(0)
     return Response(buf.getvalue(), media_type="application/pdf",
-        headers={"Content-Disposition": 'attachment; filename="lideres.pdf"'})
+        headers={"Content-Disposition": 'attachment; filename="lideres.pdf"'}
+    )
 
 # -----------------------------------------------------------------------------
-# Main 
+# Main
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn

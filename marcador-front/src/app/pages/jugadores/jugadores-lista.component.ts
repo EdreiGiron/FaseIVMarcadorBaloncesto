@@ -18,6 +18,8 @@ import { RouterModule } from '@angular/router';
 export class JugadoresListaComponent implements OnInit {
   private svc = inject(JugadoresService);
   private equiposSvc = inject(EquiposService);
+  private equiposById = new Map<number, string>();
+
 
   // filtros
   search = ''; equipoNombre = ''; posicion = ''; equipoId: number | null = null;
@@ -39,8 +41,16 @@ export class JugadoresListaComponent implements OnInit {
   seleccionado: JugadorAdminDto | null = null;
 
   ngOnInit(): void {
-    this.equiposSvc.list().subscribe(e => this.equipos.set(e));
-    this.cargarLista();
+    this.equiposSvc.list().subscribe(e => {
+    this.equipos.set(e);
+    this.equiposById = new Map(e.map(x => [x.id, x.nombre]));
+    // si ya hay jugadores cargados, completa equipoNombre en memoria
+    this.jugadores.set(this.jugadores().map(j => ({
+      ...j,
+      equipoNombre: j.equipoNombre || (j.equipoId ? (this.equiposById.get(j.equipoId) ?? '') : '')
+    })));
+  });
+  this.cargarLista();
   }
 
 cargarLista(): void {
@@ -52,10 +62,29 @@ cargarLista(): void {
     equipoNombre: this.equipoNombre?.trim() || undefined,
     equipoId: this.equipoId ?? undefined,
     posicion: this.posicion?.trim() || undefined,
-    sortBy: this.sortBy, sortDir: this.sortDir
+    sortBy: (this.sortBy === 'equipo' ? 'nombre' : this.sortBy),
+    sortDir: this.sortDir
   }).subscribe({
-    next: res => { this.jugadores.set(res.items); this.totalItems = res.totalItems; this.cargando.set(false); },
-    error: err => { this.errorMsg.set(err?.error?.message || 'Error al listar jugadores.'); this.cargando.set(false); }
+    next: res => {
+      const items = (res.items ?? []).map((j: JugadorAdminDto) => ({
+        ...j,
+        equipoNombre: j.equipoNombre || (j.equipoId ? (this.equiposById.get(j.equipoId) ?? '') : '')
+      }));
+      const sorted = this.sortBy === 'equipo'
+        ? [...items].sort((a, b) => {
+            const A = (a.equipoNombre || '').localeCompare(b.equipoNombre || '');
+            return this.sortDir === 'asc' ? A : -A;
+          })
+        : items;
+
+      this.jugadores.set(sorted);
+      this.totalItems = res.totalItems;
+      this.cargando.set(false);
+    },
+    error: err => {
+      this.errorMsg.set(err?.error?.message || 'Error al listar jugadores.');
+      this.cargando.set(false);
+    }
   });
 }
   // pager helpers

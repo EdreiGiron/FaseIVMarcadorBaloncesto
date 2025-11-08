@@ -19,3 +19,8 @@
 .btn { padding: 8px 12px; border: 1px solid #ddd; background:#fff; border-radius: 6px; cursor: pointer; }
 .btn.primary { background:#2e7d32; color:#fff; border-color:#2e7d32; }
 .err { color:#c62828; }
+
+.form-grid { display:grid; gap:12px; }
+.form-row { display:flex; flex-direction:column; gap:6px; }
+.form-actions { display:flex; gap:8px; justify-content:flex-start; }
+.err { color:#c0392b; margin-top:8px; }

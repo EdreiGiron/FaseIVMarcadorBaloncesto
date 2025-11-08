@@ -21,6 +21,6 @@ export class DashboardComponent implements OnInit {
 
   isAdmin(): boolean {
      const r = (this.auth.getRole() || '').trim().toLowerCase();
-  return r === 'admin' || r === 'administrador';
+  return r == 'admin' || r == 'administrador';
   }
 }

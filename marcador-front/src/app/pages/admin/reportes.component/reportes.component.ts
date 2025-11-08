@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Global } from '../../../servicios/global';
 
-type Team    = { id: number; nombre: string };
-type Player  = { id: number; nombre: string; equipoId: number };
-type Season  = { id: number; nombre: string };
+type Team = { id: number; nombre: string };
+type Player = { id: number; nombre: string; equipoId: number };
+type Season = { id: number; nombre: string };
 
 // Opción para el <select> de partidos (id + etiqueta visible)
 type MatchOption = { id: number; label: string };
@@ -36,7 +36,7 @@ export class ReportesComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private location: Location,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTeams();
@@ -130,34 +130,107 @@ export class ReportesComponent implements OnInit {
   // ---------- Navegación ----------
   goBack() { this.location.back(); }
 
-  // ---------- Helpers ----------
-  private open(path: string) {
-    const base = Global.reportesUrl.replace(/\/$/, ''); // '/api/reportes'
-    const p = path.startsWith('/') ? path : `/${path}`; // conserva '/pdf/...'
-    window.open(`${base}${p}`, '_blank', 'noopener');   // => '/api/reportes/pdf/...'
+  // ---------- Descarga de PDFs (nuevo) ----------
+  /** Une base + path sin duplicar /pdf cuando Global.reportesUrl ya termina en /pdf */
+  private buildReportUrl(path: string): string {
+    const base = (Global.reportesUrl || '').replace(/\/$/, '');
+    if (!base) return path;                       // si no hay base, usa path tal cual (/pdf/...)
+    if (base.endsWith('/pdf') && path.startsWith('/pdf')) return path; // evita /pdf/pdf/...
+    return `${base}${path}`;
+  }
+
+  /** Descarga genérica con HttpClient (usa interceptor para el Bearer) */
+  private descargar(
+    path: string,
+    fileNameFallback: string,
+    params?: Record<string, string | number | undefined>
+  ) {
+    const url = this.buildReportUrl(path);
+
+    let httpParams = new HttpParams();
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== null) httpParams = httpParams.set(k, String(v));
+      }
+    }
+
+    this.http.get(url, { params: httpParams, responseType: 'blob', observe: 'response' as const })
+      .subscribe({
+        next: async (res) => {
+          const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+          const blob = res.body!;
+
+          // Si NO es PDF, mostramos el texto de error (login, JSON, etc.) y no descargamos
+          if (!ct.includes('application/pdf')) {
+            const text = await new Response(blob).text().catch(() => '(sin cuerpo)');
+            console.error('El backend no devolvió PDF:', ct, text);
+            alert(
+              `No se generó el PDF (Content-Type: ${ct}).\n\n` +
+              `Respuesta del servidor:\n${text.slice(0, 400)}`
+            );
+            return;
+          }
+
+          // Intentar nombre desde Content-Disposition
+          let fileName = fileNameFallback;
+          const cd = res.headers.get('Content-Disposition');
+          const m = cd && /filename\*=UTF-8''([^;]+)|filename="?([^"]+)"?/i.exec(cd);
+          if (m) fileName = decodeURIComponent(m[1] || m[2]);
+
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = fileName;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(a.href);
+        },
+        error: (err) => {
+          console.error('Error al descargar PDF:', err);
+          alert('No se pudo generar el PDF. Revisa tu sesión y que el servicio de reportes esté arriba.');
+        }
+      });
   }
 
   // ---------- Acciones (descarga PDF) ----------
-  openEquipos() { this.open('/pdf/equipos'); }
+  openEquipos() {
+    this.descargar('/pdf/equipos', 'Equipos_Registrados.pdf');
+  }
 
   openJugadoresPorEquipo() {
     if (this.selectedTeamId == null) return;
-    this.open(`/pdf/jugadores-por-equipo?equipoId=${encodeURIComponent(this.selectedTeamId)}`);
+    this.descargar(
+      '/pdf/jugadores-por-equipo',
+      `JugadoresXEquipo_${this.selectedTeamId}.pdf`,
+      { equipoId: this.selectedTeamId }
+    );
   }
 
   openHistorial() {
-    const q = this.temporadaId != null ? `?temporadaId=${encodeURIComponent(this.temporadaId)}` : '';
-    this.open(`/pdf/historial-partidos${q}`);
+    this.descargar(
+      '/pdf/historial-partidos',
+      'Historial_Partidos.pdf',
+      this.temporadaId != null ? { temporadaId: this.temporadaId } : undefined
+    );
   }
 
   openRoster() {
     if (this.partidoId == null) return;
-    this.open(`/pdf/roster?partidoId=${encodeURIComponent(this.partidoId)}`);
+    this.descargar(
+      '/pdf/roster',
+      `Roster_Partido_${this.partidoId}.pdf`,
+      { partidoId: this.partidoId }
+    );
   }
 
   openScouting() {
     if (this.selectedPlayerId == null) return;
-    this.open(`/pdf/scouting?jugadorId=${encodeURIComponent(this.selectedPlayerId)}`);
+    this.descargar(
+      '/pdf/scouting',
+      `estadisticas_jugador_${this.selectedPlayerId}.pdf`,
+      { jugadorId: this.selectedPlayerId }
+    );
   }
 
   // Para *ngFor

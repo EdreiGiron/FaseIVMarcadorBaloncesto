@@ -1,98 +1,87 @@
 /**
  * Servicio de equipos: listado, paginado, detalle y CRUD.
- * Maneja subida/borrado de logos mediante formularios (FormData).
- * Base URL: `Global.url`.
+ * Soporta JSON simple o FormData (para subir logo).
+ * Todas las rutas pasan por el proxy: /api/equipos
  */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PagedResult } from '../modelos/paged';
-import {
-  EquipoAdminDto,
-  EquipoCreateForm,
-  EquipoUpdateForm,
-} from '../modelos/equipo-admin';
+import { EquipoAdminDto } from '../modelos/equipo-admin';
+
+// Permitir tanto FormData como JSON simple
+export type EquipoUpsert = FormData | { nombre: string; ciudad: string };
 
 @Injectable({ providedIn: 'root' })
 export class EquiposService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8081/api/equipos'; 
+  private base = '/api/equipos';
 
-  // GET /api/equipos?search=&ciudad=
+  // Helpers para logo
+  logoUrl(file?: string | null): string | null {
+    if (!file) return null;
+    if (/^https?:\/\//i.test(file)) return file;
+    return `${this.base}/logo/${encodeURIComponent(file)}`;
+  }
+  fallbackLogo(kind: 'local' | 'visita'): string {
+    return `/assets/logos/${kind}.png`;
+  }
+  logoOrFallback(file?: string | null, kind: 'local' | 'visita' = 'local'): string {
+    return this.logoUrl(file) ?? this.fallbackLogo(kind);
+  }
+
+  // ===== Listados / Detalle =====
   list(search?: string, ciudad?: string): Observable<EquipoAdminDto[]> {
     let params = new HttpParams();
     if (search) params = params.set('search', search);
     if (ciudad) params = params.set('ciudad', ciudad);
     return this.http.get<EquipoAdminDto[]>(this.base, { params });
   }
-   logoUrl(file?: string | null): string | null {
-    if (!file) return null;
-    if (/^https?:\/\//i.test(file)) return file; 
-    return `/api/equipos/logo/${encodeURIComponent(file)}`;
-  }
-  fallbackLogo(kind: 'local'|'visita'): string {
-  return `/assets/logos/${kind}.png`;
-}
 
-//  
-logoOrFallback(file?: string | null, kind: 'local'|'visita'='local'): string {
-  return this.logoUrl(file) ?? this.fallbackLogo(kind);
-}
-
-  // GET /api/equipos/:id
   getById(id: number): Observable<EquipoAdminDto> {
     return this.http.get<EquipoAdminDto>(`${this.base}/${id}`);
   }
 
-  // POST /api/equipos  (multipart/form-data)
-  create(data: EquipoCreateForm): Observable<EquipoAdminDto> {
-    const form = new FormData();
-    
-    // Debug: log what we're appending
-    console.log('Creating FormData with:', data);
-    
-    form.append('nombre', data.nombre);
-    form.append('ciudad', data.ciudad);
-    if (data.logo) form.append('logo', data.logo);
-    
-    // Debug: log FormData contents
-    console.log('FormData entries:');
-    for (let [key, value] of form.entries()) {
-      console.log(key, ':', value);
-    }
-    
-    console.log('Making POST to:', this.base);
-    return this.http.post<EquipoAdminDto>(this.base, form);
+  listPaged(opts: {
+    page: number; pageSize: number;
+    search?: string; ciudad?: string;
+    sortBy?: 'nombre' | 'ciudad' | 'puntos' | 'faltas';
+    sortDir?: 'asc' | 'desc';
+  }) {
+    let params = new HttpParams()
+      .set('page', opts.page)
+      .set('pageSize', opts.pageSize);
+    if (opts.search) params = params.set('search', opts.search);
+    if (opts.ciudad) params = params.set('ciudad', opts.ciudad);
+    if (opts.sortBy) params = params.set('sortBy', opts.sortBy);
+    if (opts.sortDir) params = params.set('sortDir', opts.sortDir);
+
+    return this.http.get<PagedResult<EquipoAdminDto>>(`${this.base}/paged`, { params });
   }
 
-  // PUT /api/equipos/:id (multipart/form-data)
-  update(id: number, data: EquipoUpdateForm): Observable<EquipoAdminDto> {
-    const form = new FormData();
-    form.append('nombre', data.nombre);
-    form.append('ciudad', data.ciudad);
-    if (data.logo) form.append('logo', data.logo);
-    return this.http.put<EquipoAdminDto>(`${this.base}/${id}`, form);
+  // ===== CRUD (JSON o FormData) =====
+  create(body: EquipoUpsert): Observable<EquipoAdminDto> {
+    // Si es FormData NO setear content-type manualmente.
+    return this.http.post<EquipoAdminDto>(this.base, body);
   }
 
-  // DELETE /api/equipos/:id
+  update(id: number, body: EquipoUpsert): Observable<EquipoAdminDto> {
+    // Laravel maneja bien POST + _method=PUT con multipart
+    // (si tu backend acepta PUT multipart directo, cambia por .put)
+    return this.http.post<EquipoAdminDto>(`${this.base}/${id}?_method=PUT`, body);
+    // return this.http.put<EquipoAdminDto>(`${this.base}/${id}`, body);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  listPaged(opts: {
-  page: number; pageSize: number;
-  search?: string; ciudad?: string;
-  sortBy?: 'nombre'|'ciudad'|'puntos'|'faltas';
-  sortDir?: 'asc'|'desc';
-}) {
-  let params = new HttpParams()
-    .set('page', opts.page)
-    .set('pageSize', opts.pageSize);
-  if (opts.search) params = params.set('search', opts.search);
-  if (opts.ciudad) params = params.set('ciudad', opts.ciudad);
-  if (opts.sortBy) params = params.set('sortBy', opts.sortBy);
-  if (opts.sortDir) params = params.set('sortDir', opts.sortDir);
-
-  return this.http.get<PagedResult<EquipoAdminDto>>(`${this.base}/paged`, { params });
-}
+  // Convenience para armar FormData desde JSON + File
+  toFormData(dto: { nombre: string; ciudad: string }, logoFile?: File): FormData {
+    const fd = new FormData();
+    fd.append('nombre', dto.nombre.trim());
+    fd.append('ciudad', dto.ciudad.trim());
+    if (logoFile) fd.append('logo', logoFile);
+    return fd;
+  }
 }

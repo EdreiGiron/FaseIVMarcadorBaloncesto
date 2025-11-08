@@ -1,23 +1,39 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('players', function (Blueprint $table) {
-            $table->integer('puntos')->default(0);
-            $table->integer('faltas')->default(0);
-        });
+        // Agregar solo si NO existen
+        if (!Schema::hasColumn('players', 'puntos')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->unsignedInteger('puntos')->default(0);
+            });
+        }
+
+        if (!Schema::hasColumn('players', 'faltas')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->unsignedInteger('faltas')->default(0);
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('players', function (Blueprint $table) {
-            $table->dropColumn(['puntos', 'faltas']);
-        });
+        // Quitar solo si existen
+        if (Schema::hasColumn('players', 'faltas')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->dropColumn('faltas');
+            });
+        }
+        if (Schema::hasColumn('players', 'puntos')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->dropColumn('puntos');
+            });
+        }
     }
 };

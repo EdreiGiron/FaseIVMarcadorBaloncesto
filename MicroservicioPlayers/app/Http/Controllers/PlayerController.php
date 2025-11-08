@@ -140,7 +140,7 @@ class PlayerController extends Controller
                     $equipoNombre = $equipo['nombre'] ?? '';
                 }
             } catch (\Exception $e) {
-                // Si falla la llamada, dejar vacío
+                
             }
         }
 

@@ -55,7 +55,6 @@ class TeamController extends Controller
     public function store(Request $request)
     {
         try {
-            // Detectar si viene en JSON puro y normalizar a claves esperadas
             if ($request->isJson() && empty($request->all())) {
                 $json = $request->getContent();
                 $data = json_decode($json, true) ?: [];

@@ -141,7 +141,7 @@ export const routes: Routes = [
         .then(m => m.ReportesComponent),
     title: 'Reportes',
     canActivate: [authGuard, RoleGuard],
-    data: { roles: ['Admin'] }
+    data: { roles: ['Admin','USER'] }
   },
 
   { path: '**', redirectTo: 'login' }

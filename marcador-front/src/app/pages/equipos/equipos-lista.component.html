@@ -16,7 +16,7 @@
   <div *ngIf="cargando()" class="info">Cargando...</div>
   <div *ngIf="errorMsg()" class="err">{{ errorMsg() }}</div>
 
-    <table class="tbl" *ngIf="!cargando()">
+  <table class="tbl" *ngIf="!cargando()">
     <thead>
       <tr>
         <th>Logo</th>
@@ -38,10 +38,10 @@
         <td>{{ e.puntos }}</td>
         <td>{{ e.faltas }}</td>
         <td>
-        <div class="row-actions">
-        <button class="btn" (click)="editar(e)">Editar</button>
-        <button class="btn danger" (click)="eliminar(e)">Eliminar</button>
-        </div>  
+          <div class="row-actions">
+            <button class="btn" (click)="editar(e)">Editar</button>
+            <button class="btn danger" (click)="eliminar(e)">Eliminar</button>
+          </div>
         </td>
 
       </tr>
@@ -53,7 +53,7 @@
 
   <!-- Paginación (FUERA de la tabla) -->
   <div class="pager" *ngIf="totalItems > 0">
-  <div>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalItems }}</div>
+    <div>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalItems }}</div>
     <div class="btns">
       <button class="btn" (click)="goPage(page-1)" [disabled]="page<=1">Anterior</button>
       <span>Página {{ page }} / {{ totalPages }}</span>
@@ -69,14 +69,10 @@
   </div>
 
 
-<!-- Modal simple -->
-<div class="modal-backdrop" *ngIf="modalVisible()">
-  <div class="modal">
-    <app-equipo-form
-      [modo]="modo"
-      [inicial]="seleccionado"
-      (saved)="onFormSaved($event)"
-      (cancelled)="onFormCancelled()"
-    ></app-equipo-form>
+  <!-- Modal simple -->
+  <div class="modal-backdrop" *ngIf="modalVisible()">
+    <div class="modal">
+      <app-equipo-form [modo]="modo" [inicial]="seleccionado" (saved)="onFormSaved()"
+        (cancelled)="onFormCancelled()"></app-equipo-form>
+    </div>
   </div>
-</div>
