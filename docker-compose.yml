@@ -12,12 +12,12 @@ services:
     volumes:
       - players_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [basketball_net]
-    profiles: ["players"]
+    networks: [ basketball_net ]
+    profiles: [ "players" ]
 
   # SQL Server general
   sqlserver:
@@ -30,12 +30,12 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      test: [ "CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -Q 'SELECT 1' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 20
-    networks: [basketball_net]
-    profiles: ["teams","reports"]
+    networks: [ basketball_net ]
+    profiles: [ "teams", "reports" ]
 
   # SQL Server exclusivo del auth-service
   sqlserver-auth:
@@ -53,8 +53,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [basketball_net]
-    profiles: ["auth"]
+    networks: [ basketball_net ]
+    profiles: [ "auth" ]
 
   # Microservicio de autenticación
   auth-service:
@@ -67,20 +67,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-
-      # Connection String
       ConnectionStrings__DefaultConnection: Server=sqlserver-auth,1433;Database=MarcadorAuthDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False
-
-      # CORS
       AllowedOrigins__0: http://localhost:4200
-
+      AllowedOrigins__1: http://basketmarcador.online
       # OAuth
       OAuth__Google__ClientId: 1093931371189-qabnd72ubb9314qmp2mrma4rnuck43p1.apps.googleusercontent.com
       OAuth__Google__ClientSecret: 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
       OAuth__GitHub__ClientId: Ov23libhBVKlWMsSIKde
       OAuth__GitHub__ClientSecret: 05871bce443d3f4668bfda73d3c873f9d4af7cd9
-      OAuth__FrontCallback: http://localhost:4200/auth/callback
-
+      OAuth__FrontCallback: http://basketmarcador.online/auth/callback
       # JWT / RSA
       Jwt__Issuer: https://auth-service
       Jwt__Audience: marcador-clients
@@ -94,8 +89,8 @@ services:
     volumes:
       - ./secrets/auth_private.pem:/run/secrets/auth_private.pem:ro
       - ./secrets/auth_public.pem:/run/secrets/auth_public.pem:ro
-    networks: [basketball_net]
-    profiles: ["auth"]
+    networks: [ basketball_net ]
+    profiles: [ "auth" ]
 
   # Microservicio de jugadores (PHP)
   players-service:
@@ -111,8 +106,8 @@ services:
       FRONT_ORIGIN: http://localhost:4200
     ports:
       - "8082:8082"
-    networks: [basketball_net]
-    profiles: ["players"]
+    networks: [ basketball_net ]
+    profiles: [ "players" ]
 
   # Microservicio de equipos
   teams-service:
@@ -127,8 +122,8 @@ services:
       AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "5003:8080"
-    networks: [basketball_net]
-    profiles: ["teams"]
+    networks: [ basketball_net ]
+    profiles: [ "teams" ]
 
   # Microservicio de reportes
   reports-service:
@@ -143,11 +138,9 @@ services:
       AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "5004:8080"
-    networks: [basketball_net]
-    profiles: ["reports"]
+    networks: [ basketball_net ]
+    profiles: [ "reports" ] # Microservicio de partidos
 
-
-  # Microservicio de partidos
   matches-service:
     build:
       context: ./microserviciopartidos
@@ -168,9 +161,8 @@ services:
       FRONT_ORIGIN: http://localhost:4200
     ports:
       - "8084:8084"
-    networks: [basketball_net]
-    profiles: ["matches"]
-
+    networks: [ basketball_net ]
+    profiles: [ "matches" ]
 
   # Microservicio de torneos 
   tournaments-service:
@@ -194,8 +186,8 @@ services:
       AuthService__BaseUrl: http://auth-service:8080
     ports:
       - "8085:8085"
-    networks: [basketball_net]
-    profiles: ["tournaments"]
+    networks: [ basketball_net ]
+    profiles: [ "tournaments" ]
 
   # Frontend Angular
   frontend:
@@ -205,13 +197,33 @@ services:
         condition: service_started
     ports:
       - "4200:80"
-    networks: [basketball_net]
-    profiles: ["front"]
+    networks: [ basketball_net ]
+    profiles: [ "front" ]
+
+  #Api Gateway 
+  gateway:
+    image: nginx:1.25
+    container_name: api-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - auth-service
+      - frontend
+      # - players-service
+      # - reports-service
+      # - partidos-service
+      # - torneos-service
+    networks: [ basketball_net ]
+    profiles: [ "gateway" ]
 
 volumes:
   players_data:
   sqlserver_data:
   mssql_auth_data:
+
 
 networks:
   basketball_net:

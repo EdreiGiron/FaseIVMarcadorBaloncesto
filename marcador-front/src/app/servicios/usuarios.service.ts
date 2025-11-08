@@ -16,7 +16,7 @@ export interface Usuario {
 })
 export class UsuariosService {
 
-  private url = `${Global.url}/users`;
+  private url = (Global.endpoints.auth + '/users');
 
   constructor(private http: HttpClient) { }
 

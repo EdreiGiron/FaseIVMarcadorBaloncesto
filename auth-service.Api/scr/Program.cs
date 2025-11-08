@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using AuthService.Api.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +61,7 @@ builder.Services.AddAuthentication()
     {
         o.ClientId = builder.Configuration["OAuth:Google:ClientId"]!;
         o.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"]!;
-        o.CallbackPath = "/signin-google";
+        o.CallbackPath = "/auth/signin-google";
         o.SignInScheme = "External";
         o.Scope.Add("email");
         o.SaveTokens = true;
@@ -69,7 +70,7 @@ builder.Services.AddAuthentication()
     {
         o.ClientId = builder.Configuration["OAuth:GitHub:ClientId"]!;
         o.ClientSecret = builder.Configuration["OAuth:GitHub:ClientSecret"]!;
-        o.CallbackPath = "/signin-github";
+        o.CallbackPath = "/auth/signin-github";
         o.SignInScheme = "External";
         o.Scope.Add("user:email");
         o.SaveTokens = true;
@@ -109,6 +110,11 @@ app.UseRouting();
 app.UseCors("cors");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+});
+
 
 app.MapControllers();
 app.Run();

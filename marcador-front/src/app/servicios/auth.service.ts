@@ -15,7 +15,7 @@ export class AuthService {
   private readonly ACCESS_KEY = 'access_token';
   private readonly REFRESH_KEY = 'refresh_token';
   private readonly USER_KEY = 'auth_user';
-  private readonly api = Global.url;
+  private readonly api = Global.endpoints.auth;
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasAccessToken());
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
@@ -61,7 +61,7 @@ export class AuthService {
   }
 
   login(dto: LoginDto): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.api}/auth/login`, dto).pipe(
+    return this.http.post<LoginResponse>(`${this.api}/login`, dto).pipe(
       tap(res => {
         this.setTokens(res.token, res.refreshToken);
         this.setUser(res.username, res.role?.name);
@@ -75,7 +75,8 @@ export class AuthService {
   }
 
   startOAuth(provider: 'google' | 'github') {
-    window.location.href = `${this.api}/oauth/${provider}`;
+    const oauthBase = Global.endpoints.oauth + '/oauth';
+    window.location.href = `${oauthBase}/${provider}/login`;
   }
 
 
@@ -83,9 +84,16 @@ export class AuthService {
     const u = new URL(url);
     const params = new URLSearchParams(u.search || (u.hash.startsWith('#') ? u.hash.substring(1) : ''));
 
-    const token = params.get('access_token') || params.get('token');
-    const refresh = params.get('refresh_token') || params.get('refreshToken');
-    const username = params.get('username');
+    const token =
+      params.get('accessToken') ||
+      params.get('token') ||
+      params.get('access_token');
+
+    const refresh =
+      params.get('refreshToken') ||
+      params.get('refresh_token');
+
+    const username = params.get('name') || params.get('username');
     const role = params.get('role');
 
     if (token) this.setTokens(token, refresh);
@@ -93,9 +101,10 @@ export class AuthService {
   }
 
 
+
   logout(): void {
     const username = this.getUsername() ?? '';
-    this.http.post(`${this.api}/auth/logout`, { username }, { responseType: 'text' })
+    this.http.post(`${this.api}/logout`, { username }, { responseType: 'text' })
       .pipe(catchError(() => of(null)))
       .subscribe(() => {
         this.clearTokens();
@@ -122,7 +131,7 @@ export class AuthService {
   }
 
   private me(): Observable<MeDto> {
-    return this.http.get<MeDto>(`${this.api}/me`).pipe(
+    return this.http.get<MeDto>(Global.endpoints.auth + '/me').pipe(
       tap(m => this.setUser(m?.name ?? this.getUsername(), m?.role ?? this.getRole()))
     );
   }
@@ -135,7 +144,7 @@ export class AuthService {
   }
 
   register(data: { username: string; password: string; roleId: number }) {
-    return this.http.post<RegisterResponseDto>(`${this.api}/auth/register`, data);
+    return this.http.post<RegisterResponseDto>(`${this.api}/register`, data);
   }
 
   getUsername(): string | null {
@@ -155,14 +164,14 @@ export class AuthService {
   }
 
   getRoles(): Observable<{ id: number; name: string }[]> {
-    return this.http.get<{ id: number; name: string }[]>(`${Global.url}/roles`);
+    return this.http.get<{ id: number; name: string }[]>(Global.endpoints.auth + '/roles');
   }
 
   refreshToken(): Observable<string> {
     const refresh = this.getRefreshToken();
     if (!refresh) return of('');
     return this.http.post<{ token: string; refreshToken: string }>(
-      `${this.api}/auth/refresh`, { refreshToken: refresh }
+      `${this.api}/refresh`, { refreshToken: refresh }
     ).pipe(
       tap(res => this.setTokens(res.token, res.refreshToken)),
       map(res => res.token),

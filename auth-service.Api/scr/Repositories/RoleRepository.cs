@@ -16,4 +16,17 @@ public class RoleRepository(AuthDbContext ctx) : IRoleRepository
     public async Task AddAsync(Role role) { _ctx.Roles.Add(role); await _ctx.SaveChangesAsync(); }
     public async Task UpdateAsync(Role role) { _ctx.Roles.Update(role); await _ctx.SaveChangesAsync(); }
     public async Task DeleteAsync(Role role) { _ctx.Roles.Remove(role); await _ctx.SaveChangesAsync(); }
+
+    public async Task RemoveAsync(Role role)
+    {
+        _ctx.Roles.Remove(role);
+        await _ctx.SaveChangesAsync();
+    }
+
+    public Task<bool> IsInUseAsync(int roleId)
+        => _ctx.Users.AnyAsync(u => u.RoleId == roleId);
+
+    public Task SaveChangesAsync()
+        => _ctx.SaveChangesAsync();
 }
+

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [ApiController]
-[Route("me")]
+[Route("auth/me")]
 public class MeController : ControllerBase
 {
     [Authorize]

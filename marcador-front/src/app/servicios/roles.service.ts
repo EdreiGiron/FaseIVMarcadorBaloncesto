@@ -17,7 +17,7 @@ export interface Role {
   providedIn: 'root'
 })
 export class RolesService {
-  private url = `${Global.url}/roles`;
+  private url = (Global.endpoints.auth + '/roles');
 
   constructor(private http: HttpClient) { }
 

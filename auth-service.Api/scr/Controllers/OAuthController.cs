@@ -6,7 +6,7 @@ using AuthService.Api.Services.Interfaces;
 namespace AuthService.Api.Controllers;
 
 [ApiController]
-[Route("oauth")]
+[Route("auth/oauth")]
 public sealed class OAuthController : ControllerBase
 {
     private readonly IAuthService _auth;
@@ -63,7 +63,7 @@ public sealed class OAuthController : ControllerBase
         if (login is null) return Problem("Could not sign in/create user.");
 
         // Redirige al front con los tokens
-        var front = _cfg["OAuth:FrontCallback"] ?? "http://localhost:4200/auth/callback";
+        var front = _cfg["OAuth:FrontCallback"] ?? "http://basketmarcador.online/auth/callback";
         var url = $"{front}" +
                   $"?accessToken={Uri.EscapeDataString(login.Token)}" +
                   $"&refreshToken={Uri.EscapeDataString(login.RefreshToken)}" +

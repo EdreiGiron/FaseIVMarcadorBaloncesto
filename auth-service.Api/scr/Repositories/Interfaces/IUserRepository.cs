@@ -1,4 +1,5 @@
 ﻿using AuthService.Api.Models;
+using AuthService.Api.Models.DTOs;
 
 namespace AuthService.Api.Repositories.Interfaces;
 
@@ -11,4 +12,11 @@ public interface IUserRepository
     Task AddAsync(User user);
     Task UpdateAsync(User user);
     Task DeleteAsync(User user);
+
+    Task<bool> ExistsUsernameAsync(string username, int? excludeUserId = null);
+    Task RemoveAsync(User user);
+    Task SaveChangesAsync();
+
+    Task<(IReadOnlyList<UsuarioDto> Items, int Total)>
+        GetPagedAsync(int page, int pageSize, string? search);
 }
